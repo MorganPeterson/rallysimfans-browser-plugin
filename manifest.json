@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "RallySimFans PR vs WR Calculator",
+  "name": "RallySimFans Browser Plugin",
   "version": "1.0.0",
-  "description": "Adds a s/km column showing how much slower your personal record is vs the world record on each stage.",
+  "description": "Enhances RallySimFans website with more information",
   "content_scripts": [
     {
       "matches": ["*://rallysimfans.hu/*"],
