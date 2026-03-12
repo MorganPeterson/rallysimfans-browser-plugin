@@ -109,6 +109,42 @@
 .rsf-plugin-pinned { border-left: 3px solid #ffcc00 !important; }
 
 
+/* Stages surface filter bar */
+.rsf-plugin-surface-bar {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.rsf-plugin-surface-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 13px;
+  font-weight: bold;
+  padding: 3px 10px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  transition: border-color 0.15s;
+}
+.rsf-plugin-surface-label:has(.rsf-plugin-surface-cb:checked) {
+  border-color: currentColor;
+}
+
+.rsf-plugin-surface-gravel { color: #a0784a; }
+.rsf-plugin-surface-tarmac { color: #555555; }
+.rsf-plugin-surface-snow   { color: #4499cc; }
+
+.rsf-plugin-surface-cb {
+  cursor: pointer;
+  accent-color: currentColor;
+  width: 14px;
+  height: 14px;
+}
+
 /* Filter bar */
 .rsf-plugin-filter {
   margin-bottom: 6px;
