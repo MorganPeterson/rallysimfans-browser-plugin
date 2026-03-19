@@ -1,0 +1,25 @@
+{
+  "name": "rallysimfans-browser-plugin",
+  "version": "1.2.0",
+  "private": true,
+  "type": "module",
+  "description": "Enhances RallySimFans website with more information",
+  "main": "dist/content.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "build": "esbuild src/content.js --bundle --outfile=dist/content.js",
+    "build:watch": "esbuild src/content.js --bundle --outfile=dist/content.js --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "package": "npm run build && node scripts/package.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.27.4",
+    "vitest": "^4.1.0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

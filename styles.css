@@ -163,3 +163,36 @@
   cursor: pointer;
   accent-color: #ffcc00;
 }
+
+.rsf-plugin-summary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin: 0 0 10px 0;
+  padding: 10px 12px;
+  border: 1px solid #444;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 6px;
+  text-align: center;
+}
+
+.rsf-plugin-summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 90px;
+  text-align: center;
+}
+
+.rsf-plugin-summary-label {
+  font-size: 11px;
+  opacity: 0.75;
+  text-transform: uppercase;
+}
+
+.rsf-plugin-summary-value {
+  font-size: 14px;
+  font-weight: bold;
+}
