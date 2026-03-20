@@ -49,20 +49,22 @@ export function parseTimeToSeconds(timeStr) {
 }
 
 export function parseDiffToSeconds(str) {
-    if (typeof str !== 'string') return null;
+  if (typeof str !== 'string') return null;
 
-    const s = str.trim();
-    if (!s || s.includes('-')) return null;
+  const s = str.trim();
+  if (!s) return null;
 
-    if (!s.includes(':')) {
-        if (!/^\d+(?:[.,]\d+)?$/.test(s)) return null;
-        const seconds = Number(s.replace(',', '.'));
-        return Number.isFinite(seconds) ? seconds : null;
-    }
+  // Reject placeholder dash patterns like "-", "- - -", "--", "—"
+  if (/^[-—\s]+$/.test(s)) return null;
 
-    return parseTimeToSeconds(s);
+  if (!s.includes(':')) {
+    if (!/^-?\d+(?:[.,]\d+)?$/.test(s)) return null;
+    const seconds = Number(s.replace(',', '.'));
+    return Number.isFinite(seconds) ? seconds : null;
+  }
+
+  return parseTimeToSeconds(s);
 }
-
 
 // Extract km from "13.4 km", "9,7 km", etc.
 export function parseKm(lenStr) {
@@ -76,4 +78,110 @@ export function parseKm(lenStr) {
 
     const km = Number(match[1].replace(',', '.'));
     return Number.isFinite(km) ? km : null;
+}
+
+function parseResultsTable(table, rowParser) {
+  if (!table) return [];
+
+  const rows = Array.from(table.querySelectorAll(':scope > tbody > tr, :scope > tr'));
+  const results = [];
+
+  for (const row of rows) {
+    const parsed = rowParser(row);
+    if (parsed) {
+      results.push(parsed);
+    }
+  }
+
+  return results;
+}
+
+export function parseStageResultsTable(table) {
+  return parseResultsTable(table, parseStageResultsRow);
+}
+
+export function parseOverallResultsTable(table) {
+  return parseResultsTable(table, parseOverallResultsRow);
+}
+
+export function parseStageResultsRow(row) {
+  if (!row || !row.cells || row.cells.length < 6) return null;
+
+  const posCell = row.querySelector('.stage_results_poz');
+  const timeCell = row.querySelector('.stage_results_time');
+  const diffPrevCell = row.querySelector('.stage_results_diff_prev');
+  const diffFirstCell = row.querySelector('.stage_results_diff_first');
+
+  if (!posCell || !timeCell || !diffPrevCell || !diffFirstCell) {
+    return null;
+  }
+
+  const posText = normalizeText(posCell.textContent);
+
+  if (!/^\d+$/.test(posText) && posText.toUpperCase() !== 'SR') {
+    return null;
+  }
+
+  const isSR = posText.toUpperCase() === 'SR';
+  const position = isSR ? null : parseIntegerStrict(posText);
+
+  return {
+    position,
+    isSR,
+    stageTimeSec: parseStageResultGap(timeCell.textContent),
+    gapToPrevSec: parseStageResultGap(diffPrevCell.textContent),
+    gapToLeaderSec: parseStageResultGap(diffFirstCell.textContent),
+    rowClassName: row.className || '',
+  };
+}
+
+export function parseOverallResultsRow(row) {
+  if (!row || !row.cells || row.cells.length < 5) return null;
+
+  const posCell = row.querySelector('.stage_results_poz');
+  const timeCell = row.querySelector('.stage_results_time');
+  const diffPrevCell = row.querySelector('.stage_results_diff_prev');
+  const diffFirstCell = row.querySelector('.stage_results_diff_first');
+
+  if (!posCell || !timeCell || !diffPrevCell || !diffFirstCell) {
+    return null;
+  }
+
+  const isSR = hasSuperRallyRowClass(row);
+  const posText = normalizeText(posCell.textContent);
+
+  if (!/^\d+$/.test(posText) && !isSR) {
+    return null;
+  }
+
+  const position = /^\d+$/.test(posText) ? parseIntegerStrict(posText) : null;
+
+  return {
+    position,
+    isSR,
+    stageTimeSec: parseDiffToSeconds(normalizeText(timeCell.textContent)),
+    gapToPrevSec: parseDiffToSeconds(normalizeText(diffPrevCell.textContent)),
+    gapToLeaderSec: parseDiffToSeconds(normalizeText(diffFirstCell.textContent)),
+    rowClassName: row.className || '',
+  };
+}
+
+export function parseStageResultGap(value) {
+  return parseDiffToSeconds(normalizeText(value));
+}
+
+export function parseIntegerStrict(value) {
+  const s = normalizeText(value);
+  if (!/^\d+$/.test(s)) return null;
+  return Number(s);
+}
+
+export function normalizeText(value) {
+  if (typeof value !== 'string') return '';
+  return value.replace(/\s+/g, ' ').trim();
+}
+
+function hasSuperRallyRowClass(row) {
+  const className = row.className || '';
+  return /\b\S+_sr\b/.test(className);
 }

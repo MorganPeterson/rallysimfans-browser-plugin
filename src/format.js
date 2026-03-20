@@ -1,27 +1,43 @@
+export function formatSeconds(value) {
+  if (value === null || !Number.isFinite(value)) return '—';
+  return `${value.toFixed(2)}`;
+}
+
+export function formatPercent(value) {
+  if (value === null || !Number.isFinite(value)) return '—';
+  return `${(value * 100).toFixed(1)}`;
+}
+
 export function formatSecondsPerKm(spkm) {
-  if (spkm === null || !Number.isFinite(spkm)) return '—';
-  return `+${spkm.toFixed(2)} s/km`;
+  const secs = formatSeconds(spkm);
+  if (secs === '—') {
+    return '—';
+  }
+  return `+${secs} s/km`;
 }
 
 export function formatConsistency(value) {
-  if (value === null || !Number.isFinite(value)) return '—';
-  return `${value.toFixed(2)} s/km`;
+  const secs = formatSeconds(value);
+  if (secs === '—') {
+    return '—';
+  }
+  return `${secs} s/km`;
+}
+
+function getDiffClass(value, thresholds = [1, 3, 6]) {
+  if (value === null || !Number.isFinite(value)) return 'rsf-plugin-diff--na';
+  if (value <= thresholds[0]) return 'rsf-plugin-diff--great';
+  if (value <= thresholds[1]) return 'rsf-plugin-diff--ok';
+  if (value <= thresholds[2]) return 'rsf-plugin-diff--slow';
+  return 'rsf-plugin-diff--bad';
 }
 
 export function getSecondsPerKmClass(spkm) {
-  if (spkm === null || !Number.isFinite(spkm)) return 'rsf-plugin-diff--na';
-  if (spkm <= 1) return 'rsf-plugin-diff--great';
-  if (spkm <= 3) return 'rsf-plugin-diff--ok';
-  if (spkm <= 6) return 'rsf-plugin-diff--slow';
-  return 'rsf-plugin-diff--bad';
+  return getDiffClass(spkm);
 }
 
 export function getConsistencyClass(value) {
-  if (value === null || !Number.isFinite(value)) return 'rsf-plugin-diff--na';
-  if (value <= 0.25) return 'rsf-plugin-diff--great';
-  if (value <= 0.75) return 'rsf-plugin-diff--ok';
-  if (value <= 1.5) return 'rsf-plugin-diff--slow';
-  return 'rsf-plugin-diff--bad';
+  return getDiffClass(value, [0.25, 0.75, 1.5]);
 }
 
 export function setSecondsPerKmCell(cell, spkm, options = {}) {

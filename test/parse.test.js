@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { parseTimeToSeconds, parseKm } from '../src/parse.js';
+import {
+  parseTimeToSeconds,
+  parseKm,
+  parseStageResultsTable,
+  parseStageResultsRow,
+  parseStageResultGap
+} from '../src/parse.js';
 
 describe('parseTimeToSeconds', () => {
   describe('valid inputs', () => {
@@ -161,5 +167,169 @@ describe('parseKm', () => {
     it('rejects negative values', () => {
       expect(parseKm('-5 km')).toBeNull();
     });
+  });
+});
+
+describe('parseStageResultGap', () => {
+  it('parses plain second diffs', () => {
+    expect(parseStageResultGap('00.000')).toBe(0);
+    expect(parseStageResultGap('02.619')).toBe(2.619);
+    expect(parseStageResultGap('26.769')).toBe(26.769);
+  });
+
+  it('parses minute-second diffs', () => {
+    expect(parseStageResultGap('1:12.189')).toBe(72.189);
+    expect(parseStageResultGap('2:12.529')).toBe(132.529);
+  });
+
+  it('rejects placeholder dash values', () => {
+    expect(parseStageResultGap('-')).toBeNull();
+    expect(parseStageResultGap('- - -')).toBeNull();
+    expect(parseStageResultGap('--')).toBeNull();
+    expect(parseStageResultGap('—')).toBeNull();
+    expect(parseStageResultGap('   ')).toBeNull();
+  });
+
+  it('accepts negative values', () => {
+    expect(parseStageResultGap('-0.500')).toBe(-0.5);
+    expect(parseStageResultGap('-1.250')).toBe(-1.25);
+  });
+
+  it('rejects malformed values', () => {
+    expect(parseStageResultGap('abc')).toBeNull();
+    expect(parseStageResultGap('1:99')).toBeNull();
+    expect(parseStageResultGap('1:12.1.2')).toBeNull();
+  });
+});
+
+describe('parseStageResultsRow', () => {
+  it('parses a classified finisher row', () => {
+    document.body.innerHTML = `
+      <table>
+        <tbody>
+          <tr class="lista_kiemelt2">
+            <td class="stage_results_poz" align="center">12</td>
+            <td class="stage_results_name" align="left">
+              <a href="usersstats.php?user_stats=98705" title="Stats">
+                <samp><img src="images/flag/US.png" width="16" title="United States of America"> <b>Morgan P</b></samp>
+                <samp> / Morgan Peterson</samp>
+              </a>
+              <br>
+              <samp>Audi 200 quattro GrpA</samp>
+            </td>
+            <td class="stage_results_time" align="center">- - -</td>
+            <td class="stage_results_diff_prev" align="center">08.157</td>
+            <td class="stage_results_diff_first" align="center">45.420</td>
+            <td class="stage_results_comment" align="center">
+              <img src="images/comment.png" title="big spin undid the whole stage">
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+
+    const row = document.querySelector('tr');
+    const parsed = parseStageResultsRow(row);
+
+    expect(parsed).toEqual({
+      position: 12,
+      isSR: false,
+      stageTimeSec: null,
+      gapToPrevSec: 8.157,
+      gapToLeaderSec: 45.42,
+      rowClassName: 'lista_kiemelt2',
+    });
+  });
+
+  it('parses an SR row', () => {
+    document.body.innerHTML = `
+      <table>
+        <tbody>
+          <tr class="paros_sr">
+            <td class="stage_results_poz" align="center">SR</td>
+            <td class="stage_results_name" align="left">
+              <a href="usersstats.php?user_stats=134389" title="Stats">
+                <samp><img src="images/flag/ES.png" width="16" title="Spain"> <b>A_Rovira</b></samp>
+                <samp> / Arnau Rovira</samp>
+              </a>
+              <br>
+              <samp>Citroen DS3 R1</samp>
+            </td>
+            <td class="stage_results_time" align="center">- - -</td>
+            <td class="stage_results_diff_prev" align="center">48.738</td>
+            <td class="stage_results_diff_first" align="center">2:12.529</td>
+            <td class="stage_results_comment" align="center"></td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+
+    const row = document.querySelector('tr');
+    const parsed = parseStageResultsRow(row);
+
+    expect(parsed).toEqual({
+      position: null,
+      isSR: true,
+      stageTimeSec: null,
+      gapToPrevSec: 48.738,
+      gapToLeaderSec: 132.529,
+      rowClassName: 'paros_sr',
+    });
+  });
+
+  it('returns null for invalid rows', () => {
+    document.body.innerHTML = `<table><tbody><tr><td>bad</td></tr></tbody></table>`;
+    const row = document.querySelector('tr');
+    expect(parseStageResultsRow(row)).toBeNull();
+  });
+});
+
+describe('parseStageResultsTable', () => {
+  it('parses multiple rows from a stage results table', () => {
+    document.body.innerHTML = `
+      <table class="rally_results_stres_left" cellspacing="1" cellpadding="1">
+        <tbody>
+          <tr class="paros">
+            <td class="stage_results_poz" align="center">1</td>
+            <td class="stage_results_name" align="left">
+              <a href="usersstats.php?user_stats=37259">
+                <samp><img src="images/flag/FI.png" title="Finland"><b>Snapou</b></samp>
+                <samp> / Sami Juvonen</samp>
+              </a>
+              <br>
+              <samp>Ford Focus Mk II RS WRC 2006</samp>
+            </td>
+            <td class="stage_results_time" align="center">- - -</td>
+            <td class="stage_results_diff_prev" align="center">00.000</td>
+            <td class="stage_results_diff_first" align="center">00.000</td>
+            <td class="stage_results_comment" align="center"></td>
+          </tr>
+          <tr class="paros_sr">
+            <td class="stage_results_poz" align="center">SR</td>
+            <td class="stage_results_name" align="left">
+              <a href="usersstats.php?user_stats=134389">
+                <samp><img src="images/flag/ES.png" title="Spain"><b>A_Rovira</b></samp>
+                <samp> / Arnau Rovira</samp>
+              </a>
+              <br>
+              <samp>Citroen DS3 R1</samp>
+            </td>
+            <td class="stage_results_time" align="center">- - -</td>
+            <td class="stage_results_diff_prev" align="center">48.738</td>
+            <td class="stage_results_diff_first" align="center">2:12.529</td>
+            <td class="stage_results_comment" align="center"></td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+
+    const table = document.querySelector('table');
+    const rows = parseStageResultsTable(table);
+
+    expect(rows).toHaveLength(2);
+    expect(rows[0].position).toBe(1);
+    expect(rows[0].isSR).toBe(false);
+    expect(rows[1].position).toBeNull();
+    expect(rows[1].isSR).toBe(true);
   });
 });

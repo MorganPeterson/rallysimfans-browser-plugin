@@ -7,7 +7,6 @@ import {
 import {
   setSecondsPerKmCell
 } from './format.js';
-
 import { insertStageStatsPanel, updateStageStatsPanel } from './summary.js';
 
 export function addDiffColumn() {

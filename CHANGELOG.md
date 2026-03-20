@@ -1,3 +1,6 @@
+### V1.4
+- Added summary panels to stage results page
+
 ### V1.3
 - added local times to rally description
 - removed driven kms out of the summary

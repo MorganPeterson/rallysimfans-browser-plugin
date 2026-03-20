@@ -3,6 +3,7 @@ import {
   createStageStatsSummary,
   calculateMedian,
   summarizeStageStats,
+  summarizeStageResults
 } from '../src/stats.js';
 
 describe('createStageStatsSummary', () => {
@@ -165,5 +166,93 @@ describe('summarizeStageStats', () => {
     expect(summary.median).toBe(1.25);
     expect(summary.average).toBeCloseTo(5.875, 10);
     expect(summary.consistency).toBeCloseTo(4.625, 10);
+  });
+});
+
+describe('summarizeStageResults', () => {
+  it('returns empty summary for no rows', () => {
+    expect(summarizeStageResults([])).toEqual({
+      totalDrivers: 0,
+      srCount: 0,
+      srRate: null,
+      classifiedCount: 0,
+      top5Compression: null,
+      top10Compression: null,
+      positionSensitivity: null,
+    });
+  });
+
+  it('computes summary stats for classified finishers and SR rows', () => {
+    const rows = [
+      { position: 1, isSR: false, gapToLeaderSec: 0 },
+      { position: 2, isSR: false, gapToLeaderSec: 2.5 },
+      { position: 3, isSR: false, gapToLeaderSec: 5.0 },
+      { position: 4, isSR: false, gapToLeaderSec: 9.0 },
+      { position: 5, isSR: false, gapToLeaderSec: 12.0 },
+      { position: null, isSR: true, gapToLeaderSec: 100.0 },
+    ];
+
+    expect(summarizeStageResults(rows)).toEqual({
+      totalDrivers: 6,
+      srCount: 1,
+      srRate: 1 / 6,
+      classifiedCount: 5,
+      top5Compression: 12,
+      top10Compression: null,
+      positionSensitivity: 3,
+    });
+  });
+
+  it('computes top10 compression when at least 10 classified finishers exist', () => {
+    const rows = [
+      { position: 1, isSR: false, gapToLeaderSec: 0 },
+      { position: 2, isSR: false, gapToLeaderSec: 1 },
+      { position: 3, isSR: false, gapToLeaderSec: 2 },
+      { position: 4, isSR: false, gapToLeaderSec: 3 },
+      { position: 5, isSR: false, gapToLeaderSec: 4 },
+      { position: 6, isSR: false, gapToLeaderSec: 5 },
+      { position: 7, isSR: false, gapToLeaderSec: 6 },
+      { position: 8, isSR: false, gapToLeaderSec: 7 },
+      { position: 9, isSR: false, gapToLeaderSec: 8 },
+      { position: 10, isSR: false, gapToLeaderSec: 9 },
+    ];
+
+    const summary = summarizeStageResults(rows);
+
+    expect(summary.classifiedCount).toBe(10);
+    expect(summary.top5Compression).toBe(4);
+    expect(summary.top10Compression).toBe(9);
+    expect(summary.positionSensitivity).toBe(1);
+  });
+
+  it('ignores SR rows for compression and position sensitivity', () => {
+    const rows = [
+      { position: 1, isSR: false, gapToLeaderSec: 0 },
+      { position: 2, isSR: false, gapToLeaderSec: 3 },
+      { position: null, isSR: true, gapToLeaderSec: 20 },
+      { position: null, isSR: true, gapToLeaderSec: 20 },
+    ];
+
+    const summary = summarizeStageResults(rows);
+
+    expect(summary.totalDrivers).toBe(4);
+    expect(summary.srCount).toBe(2);
+    expect(summary.classifiedCount).toBe(2);
+    expect(summary.top5Compression).toBeNull();
+    expect(summary.top10Compression).toBeNull();
+    expect(summary.positionSensitivity).toBe(3);
+  });
+
+  it('sorts by position when available', () => {
+    const rows = [
+      { position: 3, isSR: false, gapToLeaderSec: 8 },
+      { position: 1, isSR: false, gapToLeaderSec: 0 },
+      { position: 2, isSR: false, gapToLeaderSec: 3 },
+    ];
+
+    const summary = summarizeStageResults(rows);
+
+    expect(summary.classifiedCount).toBe(3);
+    expect(summary.positionSensitivity).toBe(4); // (3 + 5) / 2
   });
 });
