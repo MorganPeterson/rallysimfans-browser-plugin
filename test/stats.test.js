@@ -10,7 +10,6 @@ describe('createStageStatsSummary', () => {
     expect(createStageStatsSummary()).toEqual({
       drivenCount: 0,
       undrivenCount: 0,
-      drivenKm: 0,
       diffs: [],
     });
   });
@@ -58,7 +57,6 @@ describe('summarizeStageStats', () => {
     expect(summarizeStageStats(stats)).toEqual({
       drivenCount: 0,
       undrivenCount: 0,
-      drivenKm: 0,
       totalCount: 0,
       average: null,
       median: null,
@@ -72,14 +70,12 @@ describe('summarizeStageStats', () => {
     const stats = {
       drivenCount: 1,
       undrivenCount: 0,
-      drivenKm: 12.5,
       diffs: [1.75],
     };
 
     expect(summarizeStageStats(stats)).toEqual({
       drivenCount: 1,
       undrivenCount: 0,
-      drivenKm: 12.5,
       totalCount: 1,
       average: 1.75,
       median: 1.75,
@@ -93,14 +89,12 @@ describe('summarizeStageStats', () => {
     const stats = {
       drivenCount: 4,
       undrivenCount: 2,
-      drivenKm: 48.3,
       diffs: [1.0, 2.0, 4.0, 5.0],
     };
 
     expect(summarizeStageStats(stats)).toEqual({
       drivenCount: 4,
       undrivenCount: 2,
-      drivenKm: 48.3,
       totalCount: 6,
       average: 3,
       median: 3,
@@ -114,7 +108,6 @@ describe('summarizeStageStats', () => {
     const stats = {
       drivenCount: 5,
       undrivenCount: 1,
-      drivenKm: 60,
       diffs: [1.0, 1.1, 1.2, 1.3, 6.0],
     };
 
@@ -132,14 +125,12 @@ describe('summarizeStageStats', () => {
     const stats = {
       drivenCount: 3,
       undrivenCount: 1,
-      drivenKm: 30,
       diffs: [3, 1, 2],
     };
 
     const original = {
       drivenCount: stats.drivenCount,
       undrivenCount: stats.undrivenCount,
-      drivenKm: stats.drivenKm,
       diffs: [...stats.diffs],
     };
 
@@ -152,7 +143,6 @@ describe('summarizeStageStats', () => {
     const stats = {
       drivenCount: 3,
       undrivenCount: 0,
-      drivenKm: 30,
       diffs: [-0.5, 1.0, 2.0],
     };
 
@@ -167,7 +157,6 @@ describe('summarizeStageStats', () => {
     const stats = {
       drivenCount: 4,
       undrivenCount: 0,
-      drivenKm: 40,
       diffs: [1.0, 1.2, 1.3, 20.0],
     };
 
