@@ -1,6 +1,6 @@
 {
   "name": "rallysimfans-browser-plugin",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "private": true,
   "type": "module",
   "description": "Enhances RallySimFans website with more information",
@@ -9,7 +9,7 @@
     "test": "test"
   },
   "scripts": {
-    "build": "esbuild src/content.js --bundle --outfile=dist/content.js",
+    "build": "esbuild src/content.js --bundle --minify --banner:js='/* RSF plugin v1.3.0 */' --outfile=dist/content.js",
     "build:watch": "esbuild src/content.js --bundle --outfile=dist/content.js --watch",
     "test": "vitest run",
     "test:watch": "vitest",
