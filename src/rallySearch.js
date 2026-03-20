@@ -13,11 +13,11 @@ export function addRallySearchFilter() {
 
     table.dataset.rsfSearchDone = '1';
 
+    const ui = insertRallySearchBar(table, dataRows.length);
+    
     insertFavoriteHeaderCell(headerRow);
     insertFavoriteButtons(dataRows);
     reorderFavoriteRows(dataRows, dataParent);
-
-    const ui = insertRallySearchBar(table, dataRows.length);
 
     function applyFilters() {
         const term = ui.input.value.trim().toLowerCase();
@@ -242,7 +242,7 @@ function insertRallySearchBar(table, totalRows) {
     const bar = document.createElement('div');
     bar.className = 'rsf-plugin-search-bar';
     bar.innerHTML =
-        `<input type="text" class="rsf-plugin-search-input"
+        `<input type="text" id="rally-search-input" class="rsf-plugin-search-input"
             placeholder="Search rallies…"
             autocomplete="off" spellcheck="false">
      <label class="rsf-plugin-search-label">
@@ -251,7 +251,13 @@ function insertRallySearchBar(table, totalRows) {
      </label>
      <span class="rsf-plugin-search-count"></span>`;
 
-    table.insertAdjacentElement('beforebegin', bar);
+    const container = table.parentElement;
+
+    const firstElement = Array.from(container.childNodes)
+        .find(node => node.nodeType === Node.ELEMENT_NODE);
+
+    container.insertBefore(bar, firstElement || table);
+    // table.insertAdjacentElement('beforebegin', bar);
 
     const input = bar.querySelector('.rsf-plugin-search-input');
     const hidePwCb = bar.querySelector('.rsf-plugin-hide-pw-cb');

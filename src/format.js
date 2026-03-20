@@ -41,6 +41,6 @@ export function setSecondsPerKmCell(cell, spkm, options = {}) {
     return;
   }
 
-  cell.textContent = `+${spkm.toFixed(2)} s/km`;
+  cell.textContent = `+${spkm.toFixed(2)}`;
   cell.classList.add(getSecondsPerKmClass(spkm));
 }

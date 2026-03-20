@@ -15,7 +15,6 @@ const SUMMARY_TOOLTIPS = {
   drivenCount: 'Number of visible stages with both a personal record and a world record time.',
   undrivenCount: 'Number of visible stages that have a world record but no personal record.',
   totalCount: 'Total number of visible stages included in this summary.',
-  drivenKm: 'Total visible kilometers across driven stages.',
 };
 
 export function insertStageStatsPanel(table) {
@@ -83,12 +82,6 @@ export function updateStageStatsPanel(panel, stats) {
       String(summary.totalCount),
       '',
       SUMMARY_TOOLTIPS.totalCount
-    )}
-    ${renderSummaryMetric(
-      'Driven km',
-      `${summary.drivenKm.toFixed(1)} km`,
-      '',
-      SUMMARY_TOOLTIPS.drivenKm
     )}
   `;
 }

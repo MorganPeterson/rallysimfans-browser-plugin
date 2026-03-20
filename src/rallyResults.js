@@ -2,6 +2,7 @@ import { parseDiffToSeconds } from "./parse.js";
 import { setSecondsPerKmCell } from "./format.js";
 import { getDirectTableRows } from "./userstats";
 
+
 export async function addRallyResultsDiff(rallyId) {
     const totalKm = await fetchRallyTotalKm();
     if (!totalKm || totalKm <= 0) return;
@@ -69,8 +70,6 @@ function insertRallyResultsHeaderCell(row, totalKm) {
 
     const th = document.createElement('td');
     th.className = 'rsf-plugin-header';
-    th.align = 'center';
-    th.style.width = '13%';
     th.textContent = 's/km';
     th.title = `Seconds per km behind the leader (total rally distance: ${totalKm} km)`;
 
@@ -94,4 +93,3 @@ function insertRallyResultsDataCell(row, diffText, totalKm) {
     setSecondsPerKmCell(td, spkm, { zeroAsDash: true });
     row.appendChild(td);
 }
-

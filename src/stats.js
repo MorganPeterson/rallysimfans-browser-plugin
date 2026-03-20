@@ -3,7 +3,6 @@ export function createStageStatsSummary() {
     return {
         drivenCount: 0,
         undrivenCount: 0,
-        drivenKm: 0,
         diffs: [],
     };
 }
@@ -22,13 +21,12 @@ export function calculateMedian(values) {
 }
 
 export function summarizeStageStats(stats) {
-    const { diffs, drivenCount, undrivenCount, drivenKm } = stats;
+    const { diffs, drivenCount, undrivenCount } = stats;
 
     if (!diffs.length) {
         return {
             drivenCount,
             undrivenCount,
-            drivenKm,
             totalCount: drivenCount + undrivenCount,
             average: null,
             median: null,
@@ -54,7 +52,6 @@ export function summarizeStageStats(stats) {
     return {
         drivenCount,
         undrivenCount,
-        drivenKm,
         totalCount: drivenCount + undrivenCount,
         average,
         median,
