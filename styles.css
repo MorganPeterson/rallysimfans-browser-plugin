@@ -1,22 +1,23 @@
 /* RallySimFans plugin — s/km diff column */
 
 .rsf-plugin-header {
-  background-color: #1a3a5c;
-  color: #ffcc00;
-  font-weight: bold;
+  width: 90px;
+  max-width: 90px;
+  background-color: #c40000;
+  color: #fff;
+  font-weight: bolder;
+  font-size: 13px;
   text-align: center;
-  padding: 4px 10px;
   white-space: nowrap;
-  border-left: 2px solid #ffcc00;
+  border-left: 1px solid #fff;
 }
 
 .rsf-plugin-diff {
   text-align: center;
-  padding: 2px 8px;
   font-family: monospace;
-  font-weight: bold;
   white-space: nowrap;
-  border-left: 2px solid rgba(255, 204, 0, 0.25);
+  width: 90px;
+  max-width: 90px;
 }
 
 /* ≤ 1 s/km — competitive */
@@ -49,8 +50,8 @@
   width: 280px;
   border: 1px solid #888;
   border-radius: 4px;
-  background: #222;
-  color: #eee;
+  background: #ccc;
+  color: #111;
   outline: none;
 }
 
@@ -61,7 +62,7 @@
 
 .rsf-plugin-search-label {
   font-size: 13px;
-  color: #ccc;
+  color: #111;
   cursor: pointer;
   user-select: none;
   display: flex;
@@ -72,7 +73,7 @@
 
 .rsf-plugin-search-count {
   font-size: 13px;
-  color: #aaa;
+  color: #000;
   white-space: nowrap;
 }
 

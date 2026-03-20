@@ -58,7 +58,6 @@
     return {
       drivenCount: 0,
       undrivenCount: 0,
-      drivenKm: 0,
       diffs: []
     };
   }
@@ -72,12 +71,11 @@
     return sorted[mid];
   }
   function summarizeStageStats(stats) {
-    const { diffs, drivenCount, undrivenCount, drivenKm } = stats;
+    const { diffs, drivenCount, undrivenCount } = stats;
     if (!diffs.length) {
       return {
         drivenCount,
         undrivenCount,
-        drivenKm,
         totalCount: drivenCount + undrivenCount,
         average: null,
         median: null,
@@ -99,7 +97,6 @@
     return {
       drivenCount,
       undrivenCount,
-      drivenKm,
       totalCount: drivenCount + undrivenCount,
       average,
       median,
@@ -159,7 +156,7 @@
       cell.classList.add("rsf-plugin-diff--great");
       return;
     }
-    cell.textContent = `+${spkm.toFixed(2)} s/km`;
+    cell.textContent = `+${spkm.toFixed(2)}`;
     cell.classList.add(getSecondsPerKmClass(spkm));
   }
 
@@ -172,8 +169,7 @@
     worst: "Your worst visible stage pace in seconds per kilometer slower than the world record.",
     drivenCount: "Number of visible stages with both a personal record and a world record time.",
     undrivenCount: "Number of visible stages that have a world record but no personal record.",
-    totalCount: "Total number of visible stages included in this summary.",
-    drivenKm: "Total visible kilometers across driven stages."
+    totalCount: "Total number of visible stages included in this summary."
   };
   function insertStageStatsPanel(table) {
     let panel = table.previousElementSibling;
@@ -235,12 +231,6 @@
       String(summary.totalCount),
       "",
       SUMMARY_TOOLTIPS.totalCount
-    )}
-    ${renderSummaryMetric(
-      "Driven km",
-      `${summary.drivenKm.toFixed(1)} km`,
-      "",
-      SUMMARY_TOOLTIPS.drivenKm
     )}
   `;
   }
@@ -6947,7 +6937,7 @@
       if (valueCell.querySelector(".rsf-plugin-local-time")) continue;
       const localSpan = document.createElement("span");
       localSpan.className = "rsf-plugin-local-time";
-      localSpan.textContent = ` (Local: ${formatLocalDateTimeRange(range.start, range.end)})`;
+      localSpan.textContent = ` | (Local: ${formatLocalDateTimeRange(range.start, range.end)})`;
       localSpan.title = `Converted from Hungary time (${BUDAPEST_TZ}) to your local time (${Intl.DateTimeFormat().resolvedOptions().timeZone})`;
       valueCell.appendChild(localSpan);
     }
@@ -7005,8 +6995,6 @@
     if (row.querySelector(".rsf-plugin-header")) return;
     const th = document.createElement("td");
     th.className = "rsf-plugin-header";
-    th.align = "center";
-    th.style.width = "13%";
     th.textContent = "s/km";
     th.title = `Seconds per km behind the leader (total rally distance: ${totalKm} km)`;
     row.appendChild(th);

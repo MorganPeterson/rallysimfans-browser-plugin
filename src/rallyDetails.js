@@ -71,7 +71,7 @@ export function addLocalLegTimes() {
 
     const localSpan = document.createElement("span");
     localSpan.className = "rsf-plugin-local-time";
-    localSpan.textContent = ` (Local: ${formatLocalDateTimeRange(range.start, range.end)})`;
+    localSpan.textContent = ` | (Local: ${formatLocalDateTimeRange(range.start, range.end)})`;
     localSpan.title = `Converted from Hungary time (${BUDAPEST_TZ}) to your local time (${Intl.DateTimeFormat().resolvedOptions().timeZone})`;
     valueCell.appendChild(localSpan);
   }
