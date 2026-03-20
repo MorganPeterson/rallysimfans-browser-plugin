@@ -196,3 +196,9 @@
   font-size: 14px;
   font-weight: bold;
 }
+
+.rsf-plugin-local-time {
+  text-align: left;
+  font-size: 12px;
+  color: #000000;
+}

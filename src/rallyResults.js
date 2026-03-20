@@ -2,6 +2,7 @@ import { parseDiffToSeconds } from "./parse.js";
 import { setSecondsPerKmCell } from "./format.js";
 import { getDirectTableRows } from "./userstats";
 
+
 export async function addRallyResultsDiff(rallyId) {
     const totalKm = await fetchRallyTotalKm();
     if (!totalKm || totalKm <= 0) return;
@@ -94,4 +95,3 @@ function insertRallyResultsDataCell(row, diffText, totalKm) {
     setSecondsPerKmCell(td, spkm, { zeroAsDash: true });
     row.appendChild(td);
 }
-
