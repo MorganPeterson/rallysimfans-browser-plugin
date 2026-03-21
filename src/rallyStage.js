@@ -3,7 +3,7 @@ import {
     normalizeText,
 } from "./parse";
 import { summarizeStageResults } from "./stats";
-import { formatSeconds, formatPercent } from "./format";
+import { formatSeconds, formatPercent, formatStageResultStatus } from "./format";
 
 const STAGE_RESULTS_TOOLTIPS = {
   top5Compression: 'Gap from 1st to 5th among classified finishers.',
@@ -75,6 +75,10 @@ function insertResultsSummaryPanel(containerCell, className) {
   return panel;
 }
 
+function findCurrentUserStageResult(rows) {
+  return rows.find(row => row.isCurrentUser) || null;
+}
+
 export function findStageResultsDataTable() {
   const tables = document.querySelectorAll('table.rally_results_stres_left');
 
@@ -121,9 +125,40 @@ function escapeStageResultsSummaryHtml(value) {
     .replaceAll("'", '&#39;');
 }
 
-function updateStageResultsSummaryPanel(panel, summary) {
+function renderCurrentUserStageSection(row) {
+  return `
+    ${renderStageResultsSummaryMetric(
+      'Position',
+      row ? (row.isSR ? 'SR' : (row.position !== null ? String(row.position) : '—')) : '—',
+      'Your finishing position on this stage.'
+    )}
+    ${renderStageResultsSummaryMetric(
+      'Gap to Leader',
+      row ? `+${formatSeconds(row.gapToLeaderSec)}` : '—',
+      'Your time difference to the stage winner.'
+    )}
+    ${renderStageResultsSummaryMetric(
+      'Gap to Previous',
+      row ? `+${formatSeconds(row.gapToPrevSec)}` : '—',
+      'Your time difference to the driver immediately ahead of you.'
+    )}
+    ${renderStageResultsSummaryMetric(
+      'Stage Time',
+      row ? `${formatSeconds(row.stageTimeSec)}` : '—',
+      'Your recorded stage time.'
+    )}
+    ${renderStageResultsSummaryMetric(
+      'Status',
+      formatStageResultStatus(row),
+      'Whether you finished the stage or Super Rallied.'
+    )}
+  `;
+}
+
+function updateStageResultsSummaryPanel(panel, summary, currentUser) {
   panel.innerHTML = `
     <div class="rsf-plugin-summary-title">Stage Summary</div>
+    ${renderCurrentUserStageSection(currentUser)}
     ${renderStageResultsSummaryMetric('P1 -> P5 Gap', `+${formatSeconds(summary.top5Compression)}`, STAGE_RESULTS_TOOLTIPS.top5Compression)}
     ${renderStageResultsSummaryMetric('P1 -> P10 Gap', `+${formatSeconds(summary.top10Compression)}`, STAGE_RESULTS_TOOLTIPS.top10Compression)}
     ${renderStageResultsSummaryMetric('Median Gap', `+${formatSeconds(summary.positionSensitivity)}`, STAGE_RESULTS_TOOLTIPS.positionSensitivity)}
@@ -140,6 +175,8 @@ export function addStageResultsSummary() {
   if (!stageRows.length) return;
 
   const stageSummary = summarizeStageResults(stageRows);
+  const currentUser = findCurrentUserStageResult(stageRows);
+
   const stageCell = findContainingCell(stageTable);
   const stagePanel = insertResultsSummaryPanel(
     stageCell,
@@ -148,6 +185,6 @@ export function addStageResultsSummary() {
 
   if (!stagePanel) return;
 
-  updateStageResultsSummaryPanel(stagePanel, stageSummary);
+  updateStageResultsSummaryPanel(stagePanel, stageSummary, currentUser);
   stageTable.dataset.rsfStageSummaryDone = '1';
 }

@@ -234,6 +234,7 @@ describe('parseStageResultsRow', () => {
     expect(parsed).toEqual({
       position: 12,
       isSR: false,
+      isCurrentUser: true,
       stageTimeSec: null,
       gapToPrevSec: 8.157,
       gapToLeaderSec: 45.42,
@@ -270,6 +271,7 @@ describe('parseStageResultsRow', () => {
     expect(parsed).toEqual({
       position: null,
       isSR: true,
+      isCurrentUser: false,
       stageTimeSec: null,
       gapToPrevSec: 48.738,
       gapToLeaderSec: 132.529,
@@ -332,4 +334,64 @@ describe('parseStageResultsTable', () => {
     expect(rows[1].position).toBeNull();
     expect(rows[1].isSR).toBe(true);
   });
+});
+
+it('marks highlighted row as current user', () => {
+  document.body.innerHTML = `
+    <table>
+      <tbody>
+        <tr class="lista_kiemelt2">
+          <td class="stage_results_poz">5</td>
+          <td class="stage_results_name">
+            <a>
+              <samp><b>User123</b></samp>
+              <samp> / Real Name</samp>
+            </a>
+            <br>
+            <samp>Car Name</samp>
+          </td>
+          <td class="stage_results_time">1:23.456</td>
+          <td class="stage_results_diff_prev">01.000</td>
+          <td class="stage_results_diff_first">05.000</td>
+          <td class="stage_results_comment"></td>
+        </tr>
+      </tbody>
+    </table>
+  `;
+
+  const row = document.querySelector('tr');
+  const parsed = parseStageResultsRow(row);
+
+  expect(parsed).not.toBeNull();
+  expect(parsed.isCurrentUser).toBe(true);
+});
+
+it('does not mark non-highlighted row as current user', () => {
+  document.body.innerHTML = `
+    <table>
+      <tbody>
+        <tr>
+          <td class="stage_results_poz">5</td>
+          <td class="stage_results_name">
+            <a>
+              <samp><b>User123</b></samp>
+              <samp> / Real Name</samp>
+            </a>
+            <br>
+            <samp>Car Name</samp>
+          </td>
+          <td class="stage_results_time">1:23.456</td>
+          <td class="stage_results_diff_prev">01.000</td>
+          <td class="stage_results_diff_first">05.000</td>
+          <td class="stage_results_comment"></td>
+        </tr>
+      </tbody>
+    </table>
+  `;
+
+  const row = document.querySelector('tr');
+  const parsed = parseStageResultsRow(row);
+
+  expect(parsed).not.toBeNull();
+  expect(parsed.isCurrentUser).toBe(false);
 });

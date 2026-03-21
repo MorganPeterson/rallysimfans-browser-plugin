@@ -107,6 +107,7 @@ export function parseStageResultsRow(row) {
   const timeCell = row.querySelector('.stage_results_time');
   const diffPrevCell = row.querySelector('.stage_results_diff_prev');
   const diffFirstCell = row.querySelector('.stage_results_diff_first');
+  const isCurrentUser = row.classList.contains('lista_kiemelt2');
 
   if (!posCell || !timeCell || !diffPrevCell || !diffFirstCell) {
     return null;
@@ -124,6 +125,7 @@ export function parseStageResultsRow(row) {
   return {
     position,
     isSR,
+    isCurrentUser,
     stageTimeSec: parseStageResultGap(timeCell.textContent),
     gapToPrevSec: parseStageResultGap(diffPrevCell.textContent),
     gapToLeaderSec: parseStageResultGap(diffFirstCell.textContent),
