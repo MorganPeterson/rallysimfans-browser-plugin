@@ -1,3 +1,6 @@
+### V1.4.1
+- reformat of stage summary panel via user feedback
+
 ### V1.4
 - Added summary panels to stage results page
 

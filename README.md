@@ -8,6 +8,8 @@ This is a fork of [rallysimfans-browser-plugin](https://github.com/AnttiLoponen/
 #### Stage Performance Metrics
 - Adds s/km (seconds per kilometer) to rally results and stage record times with
 color coding.
+- A stage summary panel for quickly seeing how you did with drop downs for seeing
+time diffs between drivers who finished.
 
 #### Stage Filters
 - filter stages by surface type
@@ -17,14 +19,15 @@ color coding.
 - hide password protected rallys
 - pin favorite rallies to the top
 
-#### Summary table or stages
+#### Summary table for stages
 - Automatically calculates:
     - Average pace
     - Median pace (your typical performance)
-    - Best / Worst stage
     - Consistency score (mistake indicator)
+    - Best delta for class
+    - Worst delta for class
     - Driven vs undriven stages
-    - Total kilometers of driven stages
+    - Total stages
 
 ## Installation
 This extension should work on any browser but the installation process for Firefox
