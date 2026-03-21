@@ -79,6 +79,13 @@ export function addUndrivenStage(stats) {
   return stats;
 }
 
+function getClassifiedStageRows(rows) {
+  return rows
+  .filter(row => !row.isSR && Number.isFinite(row.position) && Number.isFinite(row.gapToLeaderSec))
+  .sort((a, b) => a.position - b.position);
+}
+
+
 export function summarizeStageResults(rows) {
   if (!Array.isArray(rows) || rows.length === 0) {
     return {
@@ -86,8 +93,6 @@ export function summarizeStageResults(rows) {
       srCount: 0,
       srRate: null,
       classifiedCount: 0,
-      top5Compression: null,
-      top10Compression: null,
       positionSensitivity: null,
     };
   }
@@ -95,28 +100,11 @@ export function summarizeStageResults(rows) {
   const totalDrivers = rows.length;
   const srCount = rows.filter(row => row?.isSR).length;
 
-  const classified = rows
-    .filter(row => row && !row.isSR && Number.isFinite(row.gapToLeaderSec))
-    .sort((a, b) => {
-      if (Number.isFinite(a.position) && Number.isFinite(b.position)) {
-        return a.position - b.position;
-      }
-      return a.gapToLeaderSec - b.gapToLeaderSec;
-    });
+  const classified = getClassifiedStageRows(rows);
 
   const classifiedCount = classified.length;
 
-  let top5Compression = null;
-  let top10Compression = null;
   let positionSensitivity = null;
-
-  if (classifiedCount >= 5) {
-    top5Compression = classified[4].gapToLeaderSec - classified[0].gapToLeaderSec;
-  }
-
-  if (classifiedCount >= 10) {
-    top10Compression = classified[9].gapToLeaderSec - classified[0].gapToLeaderSec;
-  }
 
   if (classifiedCount >= 2) {
     let sum = [];
@@ -141,8 +129,7 @@ export function summarizeStageResults(rows) {
     srCount,
     srRate: totalDrivers > 0 ? srCount / totalDrivers : null,
     classifiedCount,
-    top5Compression,
-    top10Compression,
     positionSensitivity,
+    classifiedRows: classified,
   };
 }

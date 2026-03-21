@@ -181,15 +181,13 @@
 .rsf-plugin-summary-item {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-width: 90px;
+  gap: 4px;
   text-align: center;
+  margin-right: 12px;
 }
 
 .rsf-plugin-summary-label {
   font-size: 11px;
-  opacity: 0.75;
   text-transform: uppercase;
 }
 
@@ -207,5 +205,67 @@
 .rsf-plugin-summary-title {
   width: 100%;
   text-align: center;
+  font-weight: bold;
+}
+
+.rsf-plugin-stage-summary-layout {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  width: 100%;
+}
+
+.rsf-plugin-stage-summary-main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: row;
+  min-width: 0;
+}
+
+.rsf-plugin-stage-summary-user {
+  display: ruby;
+  min-width: auto;
+}
+
+.rsf-plugin-stage-summary-side {
+  display: ruby;
+  min-width: auto;
+}
+
+.rsf-plugin-gap-comparison {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+}
+
+.rsf-plugin-gap-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: center;
+}
+
+.rsf-plugin-gap-label {
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.rsf-plugin-gap-label select {
+  min-width: 90px;
+}
+
+.rsf-plugin-gap-result-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+}
+
+.rsf-plugin-gap-result {
+  font-size: 14px;
   font-weight: bold;
 }

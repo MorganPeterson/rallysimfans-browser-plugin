@@ -87,8 +87,3 @@ export function formatDuration(seconds) {
 
   return `${sign}${s}.${msStr}`;
 }
-
-export function formatStageResultStatus(row) {
-  if (!row) return 'Not Found';
-  return row.isSr ? 'Super Rally' : 'Finished';
-}

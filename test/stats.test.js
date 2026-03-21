@@ -176,8 +176,6 @@ describe('summarizeStageResults', () => {
       srCount: 0,
       srRate: null,
       classifiedCount: 0,
-      top5Compression: null,
-      top10Compression: null,
       positionSensitivity: null,
     });
   });
@@ -197,9 +195,34 @@ describe('summarizeStageResults', () => {
       srCount: 1,
       srRate: 1 / 6,
       classifiedCount: 5,
-      top5Compression: 12,
-      top10Compression: null,
       positionSensitivity: 2.75,
+      classifiedRows: [
+        {
+          gapToLeaderSec: 0,
+          isSR: false,
+          position: 1,
+        },
+        {
+          gapToLeaderSec: 2.5,
+          isSR: false,
+          position: 2,
+        },
+        {
+          gapToLeaderSec: 5,
+          isSR: false,
+          position: 3,
+        },
+        {
+          gapToLeaderSec: 9,
+          isSR: false,
+          position: 4,
+        },
+        {
+          gapToLeaderSec: 12,
+          isSR: false,
+          position: 5,
+        },
+      ],
     });
   });
 
@@ -220,8 +243,6 @@ describe('summarizeStageResults', () => {
     const summary = summarizeStageResults(rows);
 
     expect(summary.classifiedCount).toBe(10);
-    expect(summary.top5Compression).toBe(4);
-    expect(summary.top10Compression).toBe(9);
     expect(summary.positionSensitivity).toBe(1);
   });
 
@@ -238,8 +259,6 @@ describe('summarizeStageResults', () => {
     expect(summary.totalDrivers).toBe(4);
     expect(summary.srCount).toBe(2);
     expect(summary.classifiedCount).toBe(2);
-    expect(summary.top5Compression).toBeNull();
-    expect(summary.top10Compression).toBeNull();
     expect(summary.positionSensitivity).toBe(3);
   });
 
