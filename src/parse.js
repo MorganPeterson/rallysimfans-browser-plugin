@@ -100,10 +100,6 @@ export function parseStageResultsTable(table) {
   return parseResultsTable(table, parseStageResultsRow);
 }
 
-export function parseOverallResultsTable(table) {
-  return parseResultsTable(table, parseOverallResultsRow);
-}
-
 export function parseStageResultsRow(row) {
   if (!row || !row.cells || row.cells.length < 6) return null;
 
@@ -135,37 +131,6 @@ export function parseStageResultsRow(row) {
   };
 }
 
-export function parseOverallResultsRow(row) {
-  if (!row || !row.cells || row.cells.length < 5) return null;
-
-  const posCell = row.querySelector('.stage_results_poz');
-  const timeCell = row.querySelector('.stage_results_time');
-  const diffPrevCell = row.querySelector('.stage_results_diff_prev');
-  const diffFirstCell = row.querySelector('.stage_results_diff_first');
-
-  if (!posCell || !timeCell || !diffPrevCell || !diffFirstCell) {
-    return null;
-  }
-
-  const isSR = hasSuperRallyRowClass(row);
-  const posText = normalizeText(posCell.textContent);
-
-  if (!/^\d+$/.test(posText) && !isSR) {
-    return null;
-  }
-
-  const position = /^\d+$/.test(posText) ? parseIntegerStrict(posText) : null;
-
-  return {
-    position,
-    isSR,
-    stageTimeSec: parseDiffToSeconds(normalizeText(timeCell.textContent)),
-    gapToPrevSec: parseDiffToSeconds(normalizeText(diffPrevCell.textContent)),
-    gapToLeaderSec: parseDiffToSeconds(normalizeText(diffFirstCell.textContent)),
-    rowClassName: row.className || '',
-  };
-}
-
 export function parseStageResultGap(value) {
   return parseDiffToSeconds(normalizeText(value));
 }
@@ -179,9 +144,4 @@ export function parseIntegerStrict(value) {
 export function normalizeText(value) {
   if (typeof value !== 'string') return '';
   return value.replace(/\s+/g, ' ').trim();
-}
-
-function hasSuperRallyRowClass(row) {
-  const className = row.className || '';
-  return /\b\S+_sr\b/.test(className);
 }

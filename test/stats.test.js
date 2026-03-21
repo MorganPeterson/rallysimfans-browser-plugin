@@ -199,7 +199,7 @@ describe('summarizeStageResults', () => {
       classifiedCount: 5,
       top5Compression: 12,
       top10Compression: null,
-      positionSensitivity: 3,
+      positionSensitivity: 2.75,
     });
   });
 

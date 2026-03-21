@@ -1,6 +1,6 @@
 export function formatSeconds(value) {
   if (value === null || !Number.isFinite(value)) return '—';
-  return `${value.toFixed(2)}`;
+  return `${formatDuration(value)}`;
 }
 
 export function formatPercent(value) {
@@ -59,4 +59,31 @@ export function setSecondsPerKmCell(cell, spkm, options = {}) {
 
   cell.textContent = `+${spkm.toFixed(2)}`;
   cell.classList.add(getSecondsPerKmClass(spkm));
+}
+
+export function formatDuration(seconds) {
+  if (!Number.isFinite(seconds)) return '—';
+
+  const sign = seconds < 0 ? '-' : '';
+  const abs = Math.abs(seconds);
+
+  const totalSeconds = Math.floor(abs);
+  const millis = Math.round((abs - totalSeconds) * 1000);
+
+  const s = totalSeconds % 60;
+  const m = Math.floor(totalSeconds / 60) % 60;
+  const h = Math.floor(totalSeconds / 3600);
+
+  const msStr = String(millis).padStart(3, '0');
+  const sStr = String(s).padStart(m > 0 || h > 0 ? 2 : 1, '0');
+
+  if (h > 0) {
+    return `${sign}${h}:${String(m).padStart(2, '0')}:${sStr}.${msStr}`;
+  }
+
+  if (m > 0) {
+    return `${sign}${m}:${sStr}.${msStr}`;
+  }
+
+  return `${sign}${s}.${msStr}`;
 }

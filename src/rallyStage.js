@@ -1,9 +1,8 @@
 import {
     parseStageResultsTable,
-    parseOverallResultsTable,
     normalizeText,
 } from "./parse";
-import { summarizeStageResults, summarizeOverallResults } from "./stats";
+import { summarizeStageResults } from "./stats";
 import { formatSeconds, formatPercent } from "./format";
 
 const STAGE_RESULTS_TOOLTIPS = {
@@ -13,18 +12,49 @@ const STAGE_RESULTS_TOOLTIPS = {
   srRate: 'Super Rally rate: SR drivers divided by total drivers on this stage.',
 };
 
-const OVERALL_RESULTS_TOOLTIPS = {
-  top5Compression: 'Gap from 1st to 5th among classified overall finishers.',
-  top10Compression: 'Gap from 1st to 10th among classified overall finishers.',
-  positionSensitivity: 'Average gap between adjacent classified overall finishers. Lower means a tighter field.',
-  srRate: 'Share of overall results marked with equalized/SR-style rows.',
-};
-
 function findContainingCell(element) {
   return element ? element.closest('td') : null;
 }
 
 function insertResultsSummaryPanel(containerCell, className) {
+  const stickyHeader = document.querySelector('.rally_results_header_sticky');
+
+  if (stickyHeader) {
+    const headerTable = stickyHeader.querySelector('table');
+
+    if (headerTable) {
+      let panel = stickyHeader.querySelector(`.${className}`);
+      if (panel) return panel;
+
+      const rows = headerTable.querySelectorAll(':scope > tbody > tr, :scope > tr');
+      const firstRow = rows[0] || null;
+      const colCount = firstRow && firstRow.cells.length > 0 ? firstRow.cells.length : 1;
+
+      const tr = document.createElement('tr');
+      tr.className = `${className}-row`;
+
+      const td = document.createElement('td');
+      td.colSpan = colCount;
+      td.className = `${className}-cell`;
+
+      panel = document.createElement('div');
+      panel.className = `rsf-plugin-summary ${className}`;
+
+      td.appendChild(panel);
+      tr.appendChild(td);
+
+      const tbody = headerTable.querySelector(':scope > tbody');
+
+      if (tbody) {
+        tbody.appendChild(tr);
+      } else {
+        headerTable.appendChild(tr);
+      }
+
+      return panel;
+    }
+  }
+
   if (!containerCell) return null;
 
   let panel = containerCell.querySelector(`:scope > .${className}`);
@@ -70,32 +100,6 @@ export function findStageResultsDataTable() {
   return null;
 }
 
-export function findOverallResultsDataTable() {
-  const tables = document.querySelectorAll('table.rally_results_stres_right');
-
-  for (const table of tables) {
-    const rows = table.querySelectorAll(':scope > tbody > tr, :scope > tr');
-
-    for (const row of rows) {
-      const posCell = row.querySelector('.stage_results_poz');
-      const timeCell = row.querySelector('.stage_results_time');
-      const diffFirstCell = row.querySelector('.stage_results_diff_first');
-      const nameCell = row.querySelector('.stage_results_name');
-
-      if (!posCell || !timeCell || !diffFirstCell || !nameCell) continue;
-
-      const posText = normalizeText(posCell.textContent);
-      const isRealResultRow = /^\d+$/.test(posText) || posText === '=';
-
-      if (isRealResultRow) {
-        return table;
-      }
-    }
-  }
-
-  return null;
-}
-
 function renderStageResultsSummaryMetric(label, value, tooltip = '') {
   return `
     <div class="rsf-plugin-summary-item">
@@ -120,58 +124,30 @@ function escapeStageResultsSummaryHtml(value) {
 function updateStageResultsSummaryPanel(panel, summary) {
   panel.innerHTML = `
     <div class="rsf-plugin-summary-title">Stage Summary</div>
-    ${renderStageResultsSummaryMetric('Top 5', formatSeconds(summary.top5Compression), STAGE_RESULTS_TOOLTIPS.top5Compression)}
-    ${renderStageResultsSummaryMetric('Top 10', formatSeconds(summary.top10Compression), STAGE_RESULTS_TOOLTIPS.top10Compression)}
-    ${renderStageResultsSummaryMetric('Avg. Time Gap', formatSeconds(summary.positionSensitivity), STAGE_RESULTS_TOOLTIPS.positionSensitivity)}
-    ${renderStageResultsSummaryMetric('SR Rate', formatPercent(summary.srRate), STAGE_RESULTS_TOOLTIPS.srRate)}
-  `;
-}
-
-function updateOverallResultsSummaryPanel(panel, summary) {
-  panel.innerHTML = `
-    <div class="rsf-plugin-summary-title">Overall Rally</div>
-    ${renderStageResultsSummaryMetric('Top 5', formatSeconds(summary.top5Compression), OVERALL_RESULTS_TOOLTIPS.top5Compression)}
-    ${renderStageResultsSummaryMetric('Top 10', formatSeconds(summary.top10Compression), OVERALL_RESULTS_TOOLTIPS.top10Compression)}
-    ${renderStageResultsSummaryMetric('Avg. Time Gap', formatSeconds(summary.positionSensitivity), OVERALL_RESULTS_TOOLTIPS.positionSensitivity)}
-    ${renderStageResultsSummaryMetric('SR Rate', formatPercent(summary.srRate), OVERALL_RESULTS_TOOLTIPS.srRate)}
+    ${renderStageResultsSummaryMetric('P1 -> P5 Gap', `+${formatSeconds(summary.top5Compression)}`, STAGE_RESULTS_TOOLTIPS.top5Compression)}
+    ${renderStageResultsSummaryMetric('P1 -> P10 Gap', `+${formatSeconds(summary.top10Compression)}`, STAGE_RESULTS_TOOLTIPS.top10Compression)}
+    ${renderStageResultsSummaryMetric('Median Gap', `+${formatSeconds(summary.positionSensitivity)}`, STAGE_RESULTS_TOOLTIPS.positionSensitivity)}
+    ${renderStageResultsSummaryMetric('SR Rate', `${formatPercent(summary.srRate)}%`, STAGE_RESULTS_TOOLTIPS.srRate)}
   `;
 }
 
 export function addStageResultsSummary() {
   const stageTable = findStageResultsDataTable();
-  const overallTable = findOverallResultsDataTable();
 
-  if (stageTable && stageTable.dataset.rsfStageSummaryDone !== '1') {
-    const stageRows = parseStageResultsTable(stageTable);
-    if (stageRows.length) {
-      const stageSummary = summarizeStageResults(stageRows);
-      const stageCell = findContainingCell(stageTable);
-      const stagePanel = insertResultsSummaryPanel(
-        stageCell,
-        'rsf-plugin-stage-results-summary'
-      );
+  if (!stageTable || stageTable.dataset.rsfStageSummaryDone === '1') return;
 
-      if (stagePanel) {
-        updateStageResultsSummaryPanel(stagePanel, stageSummary);
-        stageTable.dataset.rsfStageSummaryDone = '1';
-      }
-    }
-  }
+  const stageRows = parseStageResultsTable(stageTable);
+  if (!stageRows.length) return;
 
-  if (overallTable && overallTable.dataset.rsfOverallSummaryDone !== '1') {
-    const overallRows = parseOverallResultsTable(overallTable);
-    if (overallRows.length) {
-      const overallSummary = summarizeOverallResults(overallRows);
-      const overallCell = findContainingCell(overallTable);
-      const overallPanel = insertResultsSummaryPanel(
-        overallCell,
-        'rsf-plugin-overall-results-summary'
-      );
+  const stageSummary = summarizeStageResults(stageRows);
+  const stageCell = findContainingCell(stageTable);
+  const stagePanel = insertResultsSummaryPanel(
+    stageCell,
+    'rsf-plugin-stage-results-summary'
+  );
 
-      if (overallPanel) {
-        updateOverallResultsSummaryPanel(overallPanel, overallSummary);
-        overallTable.dataset.rsfOverallSummaryDone = '1';
-      }
-    }
-  }
+  if (!stagePanel) return;
+
+  updateStageResultsSummaryPanel(stagePanel, stageSummary);
+  stageTable.dataset.rsfStageSummaryDone = '1';
 }
