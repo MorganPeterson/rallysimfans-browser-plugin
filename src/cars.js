@@ -1,3 +1,24 @@
+function getSubClass(subgroup_id) {
+  if (subgroup_id === null) {
+    return null;
+  }
+  return SUBGROUP_ID_TO_CLASS_NAME[subgroup_id];
+}
+
+function getBaseClass(base_group_id) {
+  return BASE_GROUP_ID_TO_CLASS_NAME[base_group_id];
+}
+
+export function getCarByName(carName) {
+  const car = CAR_LIST.find(car => car.name === carName);
+
+  return {
+    ...car,
+    sub_class_name: getSubClass(car.subgroup_id),
+    base_class_name: getBaseClass(car.base_group_id),
+  };
+}
+
 const BASE_GROUP_ID_TO_CLASS_NAME = {
   "10": "WRC 1.6",
   "11": "WRC 2.0",
