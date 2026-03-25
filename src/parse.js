@@ -1,3 +1,5 @@
+import { getCarByName } from "./cars.js"
+
 // Convert "MM:SS.mmm" or "H:MM:SS.mmm" to total seconds. Returns null on failure.
 export function parseTimeToSeconds(timeStr) {
     if (typeof timeStr !== 'string') return null;
@@ -109,23 +111,28 @@ export function parseStageResultsRow(row) {
   const diffFirstCell = row.querySelector('.stage_results_diff_first');
   const isCurrentUser = row.classList.contains('lista_kiemelt2');
 
+  const nameSamps = row.querySelectorAll('.stage_results_name samp');
+  const carName = nameSamps[nameSamps.length - 1]; // Last <samp> in the name cell contains the car name
+
   if (!posCell || !timeCell || !diffPrevCell || !diffFirstCell) {
     return null;
   }
 
   const posText = normalizeText(posCell.textContent);
-
   if (!/^\d+$/.test(posText) && posText.toUpperCase() !== 'SR') {
     return null;
   }
 
   const isSR = posText.toUpperCase() === 'SR';
   const position = isSR ? null : parseIntegerStrict(posText);
+  const carDetails = getCarByName(normalizeText(carName.textContent));
+
 
   return {
     position,
     isSR,
     isCurrentUser,
+    carDetails,
     stageTimeSec: parseStageResultGap(timeCell.textContent),
     gapToPrevSec: parseStageResultGap(diffPrevCell.textContent),
     gapToLeaderSec: parseStageResultGap(diffFirstCell.textContent),

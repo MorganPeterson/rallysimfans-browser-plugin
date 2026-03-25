@@ -232,6 +232,15 @@ describe('parseStageResultsRow', () => {
     const parsed = parseStageResultsRow(row);
 
     expect(parsed).toEqual({
+     "carDetails": {
+     "base_class_id": 30,
+     "base_class_name": "Group A8",
+     "car_name": "Audi 200 quattro GrpA",
+     "carmodel_id": 165,
+     "id": 72,
+     "sub_class_id": 30,
+     "sub_class_name": "Group A8 (pre-1990)",
+   },
       position: 12,
       isSR: false,
       isCurrentUser: true,
@@ -269,6 +278,15 @@ describe('parseStageResultsRow', () => {
     const parsed = parseStageResultsRow(row);
 
     expect(parsed).toEqual({
+      "carDetails": {
+     "base_class_id": 33,
+     "base_class_name": "Group R1",
+     "car_name": "Citroen DS3 R1",
+     "carmodel_id": 143,
+     "id": 25,
+     "sub_class_id": null,
+     "sub_class_name": undefined,
+   },
       position: null,
       isSR: true,
       isCurrentUser: false,

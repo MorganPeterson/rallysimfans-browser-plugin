@@ -3,7 +3,7 @@ import { addLocalLegTimes } from './rallyDetails.js';
 import { addRallyResultsDiff } from './rallyResults.js';
 import { addRallySearchFilter } from './rallySearch.js';
 import { addStagesFilter } from './stages.js';
-import { addStageResultsSummary } from './rallyStage.js';
+import { addStageResultsSummary, mountSubclassFilter } from './rallyStage.js';
 
 function init() {
   const page = window.location.pathname.split("/").pop();
@@ -17,6 +17,7 @@ function init() {
         addRallyResultsDiff(rallyId);
       } else if (centerbox === "rally_results_stres.php") {
         addStageResultsSummary();
+        mountSubclassFilter();
       } else if (centerbox === "rally_list_details.php") {
         addLocalLegTimes();
       } else if (!centerbox) {

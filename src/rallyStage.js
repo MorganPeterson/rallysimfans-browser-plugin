@@ -1,5 +1,6 @@
 import {
     parseStageResultsTable,
+    parseStageResultsRow,
     normalizeText,
 } from "./parse";
 import { summarizeStageResults } from "./stats";
@@ -269,4 +270,120 @@ export function addStageResultsSummary() {
 
   updateStageResultsSummaryPanel(stagePanel, stageSummary, currentUser);
   stageTable.dataset.rsfStageSummaryDone = '1';
+}
+
+function getSelectedBaseClassCell() {
+  return document.querySelector('.car_group_list_select');
+}
+
+function getSelectedBaseClassName() {
+  return normalizeText(getSelectedBaseClassCell()?.textContent || '');
+}
+
+function applySubclassFilter(parsedRows, selectedSubgroupId) {
+  for (const item of parsedRows) {
+    const rowSubgroupId = item.carDetails?.sub_class_id ?? null;
+
+    const show =
+      !selectedSubgroupId || rowSubgroupId === selectedSubgroupId;
+
+    item.row.style.display = show ? '' : 'none';
+  }
+}
+
+export function mountSubclassFilter({ subgroupNames = {} } = {}) {
+  const selectedCell = document.querySelector('.car_group_list_select');
+  const onclick = selectedCell?.getAttribute('onclick') || '';
+  const cgMatches = [...onclick.matchAll(/cg=(\d+)/g)];
+
+  const selectedBaseGroupId = Number(
+    cgMatches.length ? cgMatches[cgMatches.length - 1][1] : null
+  );
+
+  if (!selectedBaseGroupId || selectedBaseGroupId === 7) {
+    return;
+  }
+
+  const rows = [
+    ...document.querySelectorAll('.rally_results_stres_left tr'),
+    ...document.querySelectorAll('.rally_results_stres_right tr'),
+  ];
+
+  const parsedRows = rows
+    .map(row => {
+      const parsed = parseStageResultsRow(row);
+      return parsed ? { row, ...parsed } : null;
+    })
+    .filter(Boolean);
+
+  const matchingRows = parsedRows.filter(
+    r => r.carDetails?.base_class_id === selectedBaseGroupId
+  );
+
+  const subgroupMap = new Map();
+
+  for (const row of matchingRows) {
+    const subClassId = row.carDetails?.sub_class_id;
+    const subClassName = row.carDetails?.sub_class_name;
+
+    if (!subClassId) continue;
+
+    if (!subgroupMap.has(subClassId)) {
+      subgroupMap.set(subClassId, {
+        id: subClassId,
+        label: subgroupNames[subClassId] ?? subClassName ?? `Subclass ${subClassId}`,
+      });
+    }
+  }
+
+  const subclasses = [...subgroupMap.values()];
+
+  if (subclasses.length < 2) {
+    return;
+  }
+
+  const header = document.querySelector('.fejlec4');
+  if (!header) {
+    return;
+  }
+
+  let bar = document.querySelector('.rsf-plugin-subclass-bar');
+  if (bar) bar.remove();
+
+  bar = document.createElement('div');
+  bar.className = 'rsf-plugin-subclass-bar';
+  bar.innerHTML = `
+  <button type="button" class="rsf-plugin-subclass-btn is-active" data-subgroup="">
+    All
+  </button>
+  ${subclasses
+    .map(
+      s => `
+        <button
+          type="button"
+          class="rsf-plugin-subclass-btn"
+          data-subgroup="${s.id}">
+          ${s.label}
+        </button>
+      `
+    )
+    .join('')}
+  `;
+
+  bar.addEventListener("click", (event) => {
+    const btn = event.target.closest("button[data-subgroup]");
+    if (!btn) return;
+
+    const selectedSubgroupId = btn.dataset.subgroup
+      ? Number(btn.dataset.subgroup)
+      : null;
+
+    applySubclassFilter(matchingRows, selectedSubgroupId);
+
+    for (const button of bar.querySelectorAll(".rsf-plugin-subclass-btn")) {
+      button.classList.toggle("is-active", button === btn);
+    }
+  });
+
+  header.insertAdjacentElement('afterend', bar);
 }
