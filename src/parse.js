@@ -98,12 +98,21 @@ function parseResultsTable(table, rowParser) {
   return results;
 }
 
+function parseCompetitorId(row) {
+  const link = row.querySelector('.stage_results_name a[href*="user_stats="]');
+  if (!link) return null;
+
+  const href = link.getAttribute('href') || null;
+  const match = href ? href.match(/user_stats=(\d+)/) : null;
+  return match ? Number(match[1]) : null;
+}
+
 export function parseStageResultsTable(table) {
   return parseResultsTable(table, parseStageResultsRow);
 }
 
 export function parseStageResultsRow(row) {
-  if (!row || !row.cells || row.cells.length < 6) return null;
+  if (!row || !row.cells || row.cells.length < 5) return null;
 
   const posCell = row.querySelector('.stage_results_poz');
   const timeCell = row.querySelector('.stage_results_time');
@@ -118,22 +127,26 @@ export function parseStageResultsRow(row) {
     return null;
   }
 
-  const posText = normalizeText(posCell.textContent);
-  if (!/^\d+$/.test(posText) && posText.toUpperCase() !== 'SR') {
+  const posText = normalizeText(posCell.textContent).toUpperCase();
+  const isSR = posText === 'SR' || posText === '=';
+
+  if (!/^\d+$/.test(posText) && !isSR) {
     return null;
   }
 
-  const isSR = posText.toUpperCase() === 'SR';
   const position = isSR ? null : parseIntegerStrict(posText);
   const carDetails = getCarByName(normalizeText(carName.textContent));
+  const competitorId = parseCompetitorId(row);
 
+  const rawTimeText = timeCell.querySelector('b')?.textContent ?? timeCell.childNodes[0]?.textContent ?? '';
 
   return {
+    competitorId,
     position,
     isSR,
     isCurrentUser,
     carDetails,
-    stageTimeSec: parseStageResultGap(timeCell.textContent),
+    stageTimeSec: parseResultTime(rawTimeText),
     gapToPrevSec: parseStageResultGap(diffPrevCell.textContent),
     gapToLeaderSec: parseStageResultGap(diffFirstCell.textContent),
     rowClassName: row.className || '',
@@ -153,4 +166,65 @@ export function parseIntegerStrict(value) {
 export function normalizeText(value) {
   if (typeof value !== 'string') return '';
   return value.replace(/\s+/g, ' ').trim();
+}
+
+export function parseGap(text) {
+  const s = normalizeText(text).replace(/^\+/, '');
+  if (!s || s === '-' || s === '00.000') return 0;
+
+  const parts = s.split(':');
+
+  if (parts.length === 1) {
+    const seconds = Number(parts[0]);
+    return Number.isFinite(seconds) ? seconds : null;
+  }
+
+  if (parts.length === 2) {
+    const [min, sec] = parts;
+    const minutes = Number(min);
+    const seconds = Number(sec);
+    if (!Number.isFinite(minutes) || !Number.isFinite(seconds)) return null;
+    return minutes * 60 + seconds;
+  }
+
+  if (parts.length === 3) {
+    const [hrs, min, sec] = parts;
+    const hours = Number(hrs);
+    const minutes = Number(min);
+    const seconds = Number(sec);
+    if (!Number.isFinite(hours) || !Number.isFinite(minutes) || !Number.isFinite(seconds)) {
+      return null;
+    }
+    return hours * 3600 + minutes * 60 + seconds;
+  }
+
+  return null;
+}
+
+function parseResultTime(text) {
+  const s = normalizeText(text).replace(/^\+/, '');
+  if (!s) return null;
+
+  const parts = s.split(':');
+
+  if (parts.length === 2) {
+    const [min, sec] = parts;
+    const minutes = Number(min);
+    const seconds = Number(sec);
+    if (!Number.isFinite(minutes) || !Number.isFinite(seconds)) return null;
+    return minutes * 60 + seconds;
+  }
+
+  if (parts.length === 3) {
+    const [hrs, min, sec] = parts;
+    const hours = Number(hrs);
+    const minutes = Number(min);
+    const seconds = Number(sec);
+    if (!Number.isFinite(hours) || !Number.isFinite(minutes) || !Number.isFinite(seconds)) {
+      return null;
+    }
+    return hours * 3600 + minutes * 60 + seconds;
+  }
+
+  return null;
 }

@@ -61,10 +61,9 @@ export function setSecondsPerKmCell(cell, spkm, options = {}) {
   cell.classList.add(getSecondsPerKmClass(spkm));
 }
 
-export function formatDuration(seconds) {
+export function formatTime(seconds) {
   if (!Number.isFinite(seconds)) return '—';
 
-  const sign = seconds < 0 ? '-' : '';
   const abs = Math.abs(seconds);
 
   const totalSeconds = Math.floor(abs);
@@ -78,12 +77,19 @@ export function formatDuration(seconds) {
   const sStr = String(s).padStart(m > 0 || h > 0 ? 2 : 1, '0');
 
   if (h > 0) {
-    return `${sign}${h}:${String(m).padStart(2, '0')}:${sStr}.${msStr}`;
+    return `${h}:${String(m).padStart(2, '0')}:${sStr}.${msStr}`;
   }
 
   if (m > 0) {
-    return `${sign}${m}:${sStr}.${msStr}`;
+    return `${m}:${sStr}.${msStr}`;
   }
 
-  return `${sign}${s}.${msStr}`;
+  return `${s}.${msStr}`;
+}
+
+export function formatDuration(seconds) {
+  const dur = formatTime(seconds);
+  const sign = seconds < 0 ? '-' : '';
+
+  return `${sign}${dur}`;
 }

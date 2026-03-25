@@ -4,7 +4,7 @@ import {
     normalizeText,
 } from "./parse";
 import { summarizeStageResults } from "./stats";
-import { formatSeconds, formatPercent } from "./format";
+import { formatSeconds, formatPercent, formatDuration, formatTime } from "./format";
 
 const STAGE_RESULTS_TOOLTIPS = {
   positionSensitivity: 'Average gap between adjacent classified finishers. Lower means a tighter field.',
@@ -272,22 +272,161 @@ export function addStageResultsSummary() {
   stageTable.dataset.rsfStageSummaryDone = '1';
 }
 
-function getSelectedBaseClassCell() {
-  return document.querySelector('.car_group_list_select');
+function applySubclassFilter(leftItems, rightItems, selectedSubgroupId) {
+  recalculateTable(leftItems, selectedSubgroupId);
+  recalculateTable(rightItems, selectedSubgroupId);
 }
 
-function getSelectedBaseClassName() {
-  return normalizeText(getSelectedBaseClassCell()?.textContent || '');
+function getParsedStageTableRows(selector) {
+  return [...document.querySelectorAll(selector)]
+    .map((row, index) => {
+      const parsed = parseStageResultsRow(row);
+      return parsed ? { row, originalOrder: index, ...parsed } : null;
+    })
+    .filter(Boolean);
 }
 
-function applySubclassFilter(parsedRows, selectedSubgroupId) {
-  for (const item of parsedRows) {
-    const rowSubgroupId = item.carDetails?.sub_class_id ?? null;
+function getLeftTableRows() {
+  return getParsedStageTableRows('.rally_results_stres_left tr');
+}
 
-    const show =
-      !selectedSubgroupId || rowSubgroupId === selectedSubgroupId;
+function getRightTableRows() {
+  return getParsedStageTableRows('.rally_results_stres_right tr');
+}
 
-    item.row.style.display = show ? '' : 'none';
+function cacheOriginalRowValues(row) {
+  if (!row || row.dataset.rsfSubclassInit === '1') return;
+
+  const posCell = row.querySelector('.stage_results_poz');
+  const timeCell = row.querySelector('.stage_results_time');
+  const diffPrevCell = row.querySelector('.stage_results_diff_prev');
+  const diffFirstCell = row.querySelector('.stage_results_diff_first');
+
+  row.dataset.rsfSubclassInit = '1';
+  row.dataset.origPos = posCell?.textContent ?? '';
+  row.dataset.origTime = timeCell?.textContent ?? '';
+  row.dataset.origDiffPrev = diffPrevCell?.textContent ?? '';
+  row.dataset.origDiffFirst = diffFirstCell?.textContent ?? '';
+  row.dataset.origDisplay = row.style.display ?? '';
+}
+
+function cacheOriginalValues(items) {
+  for (const item of items) {
+    cacheOriginalRowValues(item.row);
+  }
+}
+
+function restoreRowValues(row) {
+  if (!row || row.dataset.rsfSubclassInit !== '1') return;
+
+  const posCell = row.querySelector('.stage_results_poz');
+  const timeCell = row.querySelector('.stage_results_time');
+  const diffPrevCell = row.querySelector('.stage_results_diff_prev');
+  const diffFirstCell = row.querySelector('.stage_results_diff_first');
+
+  if (posCell) posCell.textContent = row.dataset.origPos ?? '';
+  if (timeCell) timeCell.textContent = row.dataset.origTime ?? '';
+  if (diffPrevCell) diffPrevCell.textContent = row.dataset.origDiffPrev ?? '';
+  if (diffFirstCell) diffFirstCell.textContent = row.dataset.origDiffFirst ?? '';
+  row.style.display = row.dataset.origDisplay ?? '';
+}
+
+function collectAvailableSubclasses(items, selectedBaseGroupId, subgroupNames = {}) {
+  const subgroupMap = new Map();
+
+  for (const item of items) {
+    const carDetails = item.carDetails;
+    if (!carDetails) continue;
+    if (carDetails.base_class_id !== selectedBaseGroupId) continue;
+    if (!carDetails.sub_class_id) continue;
+
+    const subClassId = carDetails.sub_class_id;
+    const subClassName = carDetails.sub_class_name;
+
+    if (!subgroupMap.has(subClassId)) {
+      subgroupMap.set(subClassId, {
+        id: subClassId,
+        label: subgroupNames[subClassId] ?? subClassName ?? `Subclass ${subClassId}`,
+      });
+    }
+  }
+
+  return [...subgroupMap.values()];
+}
+
+function recalculateTable(items, selectedSubgroupId) {
+  for (const item of items) {
+    restoreRowValues(item.row);
+
+    const subgroupId = item.carDetails?.sub_class_id ?? null;
+    const visible = !selectedSubgroupId || subgroupId === selectedSubgroupId;
+
+    item.visible = visible;
+    item.row.style.display = visible ? '' : 'none';
+  }
+
+  if (!selectedSubgroupId) {
+    return;
+  }
+
+  const ranked = items
+    .filter(item => item.visible)
+    .filter(item => !item.isSR)
+    .sort((a, b) => {
+      const aHasTime = Number.isFinite(a.stageTimeSec);
+      const bHasTime = Number.isFinite(b.stageTimeSec);
+
+      if (aHasTime && bHasTime) {
+        return a.stageTimeSec - b.stageTimeSec;
+      }
+
+      if (aHasTime && !bHasTime) {
+        return -1;
+      }
+
+      if (!aHasTime && bHasTime) {
+        return 1;
+      }
+
+      return a.originalOrder - b.originalOrder;
+    });
+
+  if (!ranked.length) {
+    return;
+  }
+
+  const leaderWithTime = ranked.find(item => Number.isFinite(item.stageTimeSec));
+  const leaderTime = leaderWithTime?.stageTimeSec ?? null;
+
+  for (let i = 0; i < ranked.length; i += 1) {
+    const item = ranked[i];
+    const newPosition = i + 1;
+
+    const posCell = item.row.querySelector('.stage_results_poz');
+    const timeCell = item.row.querySelector('.stage_results_time');
+    const diffPrevCell = item.row.querySelector('.stage_results_diff_prev');
+    const diffFirstCell = item.row.querySelector('.stage_results_diff_first');
+
+    if (posCell) posCell.textContent = String(newPosition);
+
+    if (!Number.isFinite(item.stageTimeSec)) {
+      continue;
+    }
+
+    let prevTimed = null;
+    for (let j = i - 1; j >= 0; j -= 1) {
+      if (Number.isFinite(ranked[j].stageTimeSec)) {
+        prevTimed = ranked[j];
+        break;
+      }
+    }
+
+    const gapPrev = prevTimed ? item.stageTimeSec - prevTimed.stageTimeSec : 0;
+    const gapLeader = leaderTime != null ? item.stageTimeSec - leaderTime : 0;
+
+    if (timeCell) timeCell.textContent = formatTime(item.stageTimeSec);
+    if (diffPrevCell) diffPrevCell.textContent = newPosition === 1 ? '-' : formatTime(gapPrev);
+    if (diffFirstCell) diffFirstCell.textContent = newPosition === 1 ? '-' : formatTime(gapLeader);
   }
 }
 
@@ -304,39 +443,22 @@ export function mountSubclassFilter({ subgroupNames = {} } = {}) {
     return;
   }
 
-  const rows = [
-    ...document.querySelectorAll('.rally_results_stres_left tr'),
-    ...document.querySelectorAll('.rally_results_stres_right tr'),
-  ];
-
-  const parsedRows = rows
-    .map(row => {
-      const parsed = parseStageResultsRow(row);
-      return parsed ? { row, ...parsed } : null;
-    })
-    .filter(Boolean);
-
-  const matchingRows = parsedRows.filter(
-    r => r.carDetails?.base_class_id === selectedBaseGroupId
+  const leftItems = getLeftTableRows().filter(
+    item => item.carDetails?.base_class_id === selectedBaseGroupId
   );
 
-  const subgroupMap = new Map();
+  const rightItems = getRightTableRows().filter(
+    item => item.carDetails?.base_class_id === selectedBaseGroupId
+  );
 
-  for (const row of matchingRows) {
-    const subClassId = row.carDetails?.sub_class_id;
-    const subClassName = row.carDetails?.sub_class_name;
+  cacheOriginalValues(leftItems);
+  cacheOriginalValues(rightItems);
 
-    if (!subClassId) continue;
-
-    if (!subgroupMap.has(subClassId)) {
-      subgroupMap.set(subClassId, {
-        id: subClassId,
-        label: subgroupNames[subClassId] ?? subClassName ?? `Subclass ${subClassId}`,
-      });
-    }
-  }
-
-  const subclasses = [...subgroupMap.values()];
+  const subclasses = collectAvailableSubclasses(
+    [...leftItems, ...rightItems],
+    selectedBaseGroupId,
+    subgroupNames
+  );
 
   if (subclasses.length < 2) {
     return;
@@ -353,37 +475,36 @@ export function mountSubclassFilter({ subgroupNames = {} } = {}) {
   bar = document.createElement('div');
   bar.className = 'rsf-plugin-subclass-bar';
   bar.innerHTML = `
-  <button type="button" class="rsf-plugin-subclass-btn is-active" data-subgroup="">
-    All
-  </button>
-  ${subclasses
-    .map(
-      s => `
-        <button
-          type="button"
-          class="rsf-plugin-subclass-btn"
-          data-subgroup="${s.id}">
-          ${s.label}
-        </button>
-      `
-    )
-    .join('')}
+    <button type="button" class="rsf-plugin-subclass-btn is-active" data-subgroup="">
+      All subclasses
+    </button>
+    ${subclasses
+      .map(
+        s => `
+          <button type="button" class="rsf-plugin-subclass-btn" data-subgroup="${s.id}">
+            ${s.label}
+          </button>
+        `
+      )
+      .join('')}
   `;
 
-  bar.addEventListener("click", (event) => {
-    const btn = event.target.closest("button[data-subgroup]");
+  bar.addEventListener('click', event => {
+    const btn = event.target.closest('button[data-subgroup]');
     if (!btn) return;
 
     const selectedSubgroupId = btn.dataset.subgroup
       ? Number(btn.dataset.subgroup)
       : null;
 
-    applySubclassFilter(matchingRows, selectedSubgroupId);
+    applySubclassFilter(leftItems, rightItems, selectedSubgroupId);
 
-    for (const button of bar.querySelectorAll(".rsf-plugin-subclass-btn")) {
-      button.classList.toggle("is-active", button === btn);
+    for (const button of bar.querySelectorAll('.rsf-plugin-subclass-btn')) {
+      button.classList.toggle('is-active', button === btn);
     }
   });
 
   header.insertAdjacentElement('afterend', bar);
+
+  applySubclassFilter(leftItems, rightItems, null);
 }
