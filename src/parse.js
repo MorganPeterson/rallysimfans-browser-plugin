@@ -114,6 +114,10 @@ export function parseStageResultsTable(table) {
   return parseResultsTable(table, parseStageResultsRow);
 }
 
+function isDashValue(text) {
+  return /^[-—\s]+$/.test(String(text ?? '').trim());
+}
+
 export function parseStageResultsRow(row) {
   if (!row || !row.cells || row.cells.length < 5) return null;
 
@@ -138,10 +142,28 @@ export function parseStageResultsRow(row) {
   }
 
   const position = isSR ? null : parseIntegerStrict(posText);
-  const carDetails = getCarByName(normalizeText(carName.textContent));
+  const carDetails = carName ? getCarByName(normalizeText(carName.textContent)) : null;
   const competitorId = parseCompetitorId(row);
 
-  const rawTimeText = timeCell.querySelector('b')?.textContent ?? timeCell.childNodes[0]?.textContent ?? '';
+  const rawTimeText =
+    timeCell.querySelector('b')?.textContent ??
+    timeCell.childNodes[0]?.textContent ??
+    '';
+
+  let gapToPrevSec = parseStageResultGap(diffPrevCell.textContent);
+  let gapToLeaderSec = parseStageResultGap(diffFirstCell.textContent);
+
+  const isLeader = position === 1 && !isSR;
+
+  if (isLeader) {
+    if (isDashValue(diffPrevCell.textContent)) {
+      gapToPrevSec = 0;
+    }
+
+    if (isDashValue(diffFirstCell.textContent)) {
+      gapToLeaderSec = 0;
+    }
+  }
 
   return {
     competitorId,
@@ -150,8 +172,8 @@ export function parseStageResultsRow(row) {
     isCurrentUser,
     carDetails,
     stageTimeSec: parseResultTime(rawTimeText),
-    gapToPrevSec: parseStageResultGap(diffPrevCell.textContent),
-    gapToLeaderSec: parseStageResultGap(diffFirstCell.textContent),
+    gapToPrevSec,
+    gapToLeaderSec,
     rowClassName: row.className || '',
   };
 }

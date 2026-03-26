@@ -17,6 +17,52 @@ function findContainingCell(element) {
   return element ? element.closest('td') : null;
 }
 
+function getVisibleParsedStageRowsFromItems(items) {
+  return items
+    .filter(item => item.visible)
+    .map(item => parseStageResultsRow(item.row))
+    .filter(Boolean);
+}
+
+function refreshStageResultsSummary(leftItems = null) {
+  const stageTable = findStageResultsDataTable();
+  if (!stageTable) return;
+
+  const stageCell = findContainingCell(stageTable);
+  const stagePanel = insertResultsSummaryPanel(
+    stageCell,
+    'rsf-plugin-stage-results-summary'
+  );
+
+  if (!stagePanel) return;
+
+  const stageRows = Array.isArray(leftItems) && leftItems.length
+    ? getVisibleParsedStageRowsFromItems(leftItems)
+    : parseStageResultsTable(stageTable);
+
+  if (!stageRows.length) {
+    stagePanel.innerHTML = `
+      <div class="rsf-plugin-stage-summary-layout">
+        <div class="rsf-plugin-stage-summary-main">
+          <div class="rsf-plugin-stage-summary-user">
+            <div class="rsf-plugin-summary-title">Stage Summary</div>
+            <div class="rsf-plugin-summary-item">
+              <span class="rsf-plugin-summary-label">Result</span>
+              <span class="rsf-plugin-summary-value">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  const stageSummary = summarizeStageResults(stageRows);
+  const currentUser = findCurrentUserStageResult(stageRows);
+
+  updateStageResultsSummaryPanel(stagePanel, stageSummary, currentUser);
+}
+
 function insertResultsSummaryPanel(containerCell, className) {
   const stickyHeader = document.querySelector('.rally_results_header_sticky');
 
@@ -236,30 +282,16 @@ function bindGapComparisonControls(panel, classifiedRows) {
 
 export function addStageResultsSummary() {
   const stageTable = findStageResultsDataTable();
+  if (!stageTable) return;
 
-  if (!stageTable || stageTable.dataset.rsfStageSummaryDone === '1') return;
-
-  const stageRows = parseStageResultsTable(stageTable);
-  if (!stageRows.length) return;
-
-  const stageSummary = summarizeStageResults(stageRows);
-  const currentUser = findCurrentUserStageResult(stageRows);
-
-  const stageCell = findContainingCell(stageTable);
-  const stagePanel = insertResultsSummaryPanel(
-    stageCell,
-    'rsf-plugin-stage-results-summary'
-  );
-
-  if (!stagePanel) return;
-
-  updateStageResultsSummaryPanel(stagePanel, stageSummary, currentUser);
+  refreshStageResultsSummary();
   stageTable.dataset.rsfStageSummaryDone = '1';
 }
 
 function applySubclassFilter(leftItems, rightItems, selectedSubgroupId) {
   recalculateTable(leftItems, selectedSubgroupId);
   recalculateTable(rightItems, selectedSubgroupId);
+  refreshStageResultsSummary(leftItems);
 }
 
 function getParsedStageTableRows(selector) {
@@ -339,6 +371,18 @@ function collectAvailableSubclasses(items, selectedBaseGroupId, subgroupNames = 
   return [...subgroupMap.values()];
 }
 
+function getAbsoluteValue(item) {
+  if (Number.isFinite(item.stageTimeSec)) {
+    return item.stageTimeSec;
+  }
+
+  if (Number.isFinite(item.gapToLeaderSec)) {
+    return item.gapToLeaderSec;
+  }
+
+  return null;
+}
+
 function recalculateTable(items, selectedSubgroupId) {
   for (const item of items) {
     restoreRowValues(item.row);
@@ -358,18 +402,21 @@ function recalculateTable(items, selectedSubgroupId) {
     .filter(item => item.visible)
     .filter(item => !item.isSR)
     .sort((a, b) => {
-      const aHasTime = Number.isFinite(a.stageTimeSec);
-      const bHasTime = Number.isFinite(b.stageTimeSec);
+      const aValue = getAbsoluteValue(a);
+      const bValue = getAbsoluteValue(b);
 
-      if (aHasTime && bHasTime) {
-        return a.stageTimeSec - b.stageTimeSec;
+      const aHasValue = Number.isFinite(aValue);
+      const bHasValue = Number.isFinite(bValue);
+
+      if (aHasValue && bHasValue) {
+        return aValue - bValue;
       }
 
-      if (aHasTime && !bHasTime) {
+      if (aHasValue && !bHasValue) {
         return -1;
       }
 
-      if (!aHasTime && bHasTime) {
+      if (!aHasValue && bHasValue) {
         return 1;
       }
 
@@ -380,8 +427,8 @@ function recalculateTable(items, selectedSubgroupId) {
     return;
   }
 
-  const leaderWithTime = ranked.find(item => Number.isFinite(item.stageTimeSec));
-  const leaderTime = leaderWithTime?.stageTimeSec ?? null;
+  const leader = ranked.find(item => Number.isFinite(getAbsoluteValue(item)));
+  const leaderValue = leader ? getAbsoluteValue(leader) : null;
 
   for (let i = 0; i < ranked.length; i += 1) {
     const item = ranked[i];
@@ -392,26 +439,42 @@ function recalculateTable(items, selectedSubgroupId) {
     const diffPrevCell = item.row.querySelector('.stage_results_diff_prev');
     const diffFirstCell = item.row.querySelector('.stage_results_diff_first');
 
-    if (posCell) posCell.textContent = String(newPosition);
-
-    if (!Number.isFinite(item.stageTimeSec)) {
-      continue;
+    if (posCell) {
+      posCell.textContent = String(newPosition);
     }
 
-    let prevTimed = null;
+    const currentValue = getAbsoluteValue(item);
+
+    let prevRanked = null;
     for (let j = i - 1; j >= 0; j -= 1) {
-      if (Number.isFinite(ranked[j].stageTimeSec)) {
-        prevTimed = ranked[j];
+      if (Number.isFinite(getAbsoluteValue(ranked[j]))) {
+        prevRanked = ranked[j];
         break;
       }
     }
 
-    const gapPrev = prevTimed ? item.stageTimeSec - prevTimed.stageTimeSec : 0;
-    const gapLeader = leaderTime != null ? item.stageTimeSec - leaderTime : 0;
+    const prevValue = prevRanked ? getAbsoluteValue(prevRanked) : null;
 
-    if (timeCell) timeCell.textContent = formatTime(item.stageTimeSec);
-    if (diffPrevCell) diffPrevCell.textContent = newPosition === 1 ? '-' : formatTime(gapPrev);
-    if (diffFirstCell) diffFirstCell.textContent = newPosition === 1 ? '-' : formatTime(gapLeader);
+    if (Number.isFinite(item.stageTimeSec) && timeCell) {
+      timeCell.textContent = formatTime(item.stageTimeSec);
+    }
+
+    if (!Number.isFinite(currentValue)) {
+      if (diffPrevCell) diffPrevCell.textContent = '-';
+      if (diffFirstCell) diffFirstCell.textContent = '-';
+      continue;
+    }
+
+    const gapPrev = prevValue != null ? currentValue - prevValue : 0;
+    const gapLeader = leaderValue != null ? currentValue - leaderValue : 0;
+
+    if (diffPrevCell) {
+      diffPrevCell.textContent = newPosition === 1 ? '-' : formatTime(gapPrev);
+    }
+
+    if (diffFirstCell) {
+      diffFirstCell.textContent = newPosition === 1 ? '-' : formatTime(gapLeader);
+    }
   }
 }
 

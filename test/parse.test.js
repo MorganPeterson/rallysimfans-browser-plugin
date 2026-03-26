@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import {
   parseTimeToSeconds,
   parseKm,
@@ -414,4 +414,94 @@ it('does not mark non-highlighted row as current user', () => {
 
   expect(parsed).not.toBeNull();
   expect(parsed.isCurrentUser).toBe(false);
+});
+
+describe('parseStageResultsRow', () => {
+  beforeEach(() => {
+    document.body.innerHTML = '';
+  });
+
+  it('treats leader dash gaps as zero for a classified P1 row', () => {
+    document.body.innerHTML = `
+      <table>
+        <tbody>
+          <tr class="lista_kiemelt2">
+            <td class="stage_results_poz">1</td>
+            <td class="stage_results_name">
+              Driver Name
+              <samp>Ford Escort RS 1600</samp>
+            </td>
+            <td class="stage_results_time"><b>3:21.500</b></td>
+            <td class="stage_results_diff_prev">-</td>
+            <td class="stage_results_diff_first">-</td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+
+    const row = document.querySelector('tr');
+    const parsed = parseStageResultsRow(row);
+
+    expect(parsed).not.toBeNull();
+    expect(parsed.position).toBe(1);
+    expect(parsed.isSR).toBe(false);
+    expect(parsed.gapToPrevSec).toBe(0);
+    expect(parsed.gapToLeaderSec).toBe(0);
+  });
+
+  it('does not force SR dash gaps to zero', () => {
+    document.body.innerHTML = `
+      <table>
+        <tbody>
+          <tr>
+            <td class="stage_results_poz">SR</td>
+            <td class="stage_results_name">
+              Driver Name
+              <samp>Ford Escort RS 1600</samp>
+            </td>
+            <td class="stage_results_time">-</td>
+            <td class="stage_results_diff_prev">-</td>
+            <td class="stage_results_diff_first">-</td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+
+    const row = document.querySelector('tr');
+    const parsed = parseStageResultsRow(row);
+
+    expect(parsed).not.toBeNull();
+    expect(parsed.position).toBeNull();
+    expect(parsed.isSR).toBe(true);
+    expect(parsed.gapToPrevSec).toBeNull();
+    expect(parsed.gapToLeaderSec).toBeNull();
+  });
+
+  it('parses normal classified gaps unchanged for non-leader rows', () => {
+    document.body.innerHTML = `
+      <table>
+        <tbody>
+          <tr>
+            <td class="stage_results_poz">2</td>
+            <td class="stage_results_name">
+              Driver Name
+              <samp>Ford Escort RS 1600</samp>
+            </td>
+            <td class="stage_results_time"><b>3:24.000</b></td>
+            <td class="stage_results_diff_prev">+2.500</td>
+            <td class="stage_results_diff_first">+2.500</td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+
+    const row = document.querySelector('tr');
+    const parsed = parseStageResultsRow(row);
+
+    expect(parsed).not.toBeNull();
+    expect(parsed.position).toBe(2);
+    expect(parsed.isSR).toBe(false);
+    expect(parsed.gapToPrevSec).toBe(2.5);
+    expect(parsed.gapToLeaderSec).toBe(2.5);
+  });
 });
