@@ -7,6 +7,7 @@ import { summarizeStageResults } from "./stats.js";
 import { formatSeconds, formatPercent, formatTime } from "./format.js";
 import { renderSummaryMetric } from './summaryMetric.js';
 import { findFirstMatchingTable, tableHasMatchingRow } from "./tableDetection.js";
+import { applyZebraStriping } from "./domTable.js";
 
 const STAGE_RESULTS_TOOLTIPS = {
   positionSensitivity: 'Average gap between adjacent classified finishers. Lower means a tighter field.',
@@ -291,6 +292,9 @@ export function addStageResultsSummary() {
 function applySubclassFilter(leftItems, rightItems, selectedSubgroupId) {
   recalculateTable(leftItems, selectedSubgroupId);
   recalculateTable(rightItems, selectedSubgroupId);
+  applyZebraStriping(leftItems);
+  applyZebraStriping(rightItems);
+
   refreshStageResultsSummary(leftItems);
 }
 

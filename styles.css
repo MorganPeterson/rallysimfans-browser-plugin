@@ -1,4 +1,10 @@
-/* RallySimFans plugin — s/km diff column */
+.paros {
+  background-color: #efefef !important;
+}
+
+.paratlan {
+  background-color: #c5c5c5 !important;
+}
 
 .rsf-plugin-header {
   width: 90px;
