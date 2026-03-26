@@ -6,6 +6,7 @@ import {
 import { summarizeStageResults } from "./stats.js";
 import { formatSeconds, formatPercent, formatTime } from "./format.js";
 import { renderSummaryMetric } from './summaryMetric.js';
+import { findFirstMatchingTable, tableHasMatchingRow } from "./tableDetection.js";
 
 const STAGE_RESULTS_TOOLTIPS = {
   positionSensitivity: 'Average gap between adjacent classified finishers. Lower means a tighter field.',
@@ -79,29 +80,25 @@ function findCurrentUserStageResult(rows) {
   return rows.find(row => row.isCurrentUser) || null;
 }
 
+function isStageResultsDataRow(row) {
+  const posCell = row.querySelector('.stage_results_poz');
+  const diffFirstCell = row.querySelector('.stage_results_diff_first');
+  const nameCell = row.querySelector('.stage_results_name');
+
+  if (!posCell || !diffFirstCell || !nameCell) return false;
+
+  const posText = normalizeText(posCell.textContent);
+  return /^\d+$/.test(posText) || posText.toUpperCase() === 'SR';
+}
+
 export function findStageResultsDataTable() {
-  const tables = document.querySelectorAll('table.rally_results_stres_left');
+  const found = findFirstMatchingTable({
+    selector: 'table.rally_results_stres_left',
+    includeTfoot: false,
+    match: ({ rows }) => tableHasMatchingRow(rows, isStageResultsDataRow),
+  });
 
-  for (const table of tables) {
-    const rows = table.querySelectorAll(':scope > tbody > tr, :scope > tr');
-
-    for (const row of rows) {
-      const posCell = row.querySelector('.stage_results_poz');
-      const diffFirstCell = row.querySelector('.stage_results_diff_first');
-      const nameCell = row.querySelector('.stage_results_name');
-
-      if (!posCell || !diffFirstCell || !nameCell) continue;
-
-      const posText = normalizeText(posCell.textContent);
-      const isRealResultRow = /^\d+$/.test(posText) || posText.toUpperCase() === 'SR';
-
-      if (isRealResultRow) {
-        return table;
-      }
-    }
-  }
-
-  return null;
+  return found?.table ?? null;
 }
 
 function renderCurrentUserStageSection(row) {

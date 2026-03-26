@@ -1,35 +1,39 @@
 import { parseKm, parseTimeToSeconds } from './parse.js';
 import { addUndrivenStage, addDrivenStage, createStageStatsSummary } from './stats.js';
 import { insertStageStatsPanel, updateStageStatsPanel } from './summary.js';
-import { getDirectTableRows, findHeaderRowByLabels } from './domTable.js';
-import {
-  insertSecondsPerKmHeaderAfter,
-  insertSecondsPerKmDataCellAfter,
-} from './secondsPerKmColumn.js';
+import { insertSecondsPerKmHeaderAfter, insertSecondsPerKmDataCellAfter } from './secondsPerKmColumn.js';
+import { findFirstMatchingTable, findHeaderRow } from './tableDetection.js';
 
 export function addDiffColumn() {
-  const tables = document.querySelectorAll('table');
+  const found = findFirstMatchingTable({
+    selector: 'table',
+    includeTfoot: true,
+    match: ({ rows }) => {
+      if (rows.length < 2) return false;
 
-  for (const table of tables) {
-    if (table.dataset.rsfPluginDone) continue;
+      const headerInfo = findHeaderRow(rows, ['PR', 'WR']);
+      if (!headerInfo) return false;
 
-    const rows = getDirectTableRows(table);
-    if (rows.length < 2) continue;
+      const dataRows = rows.slice(headerInfo.headerRowIdx + 1);
+      return !!detectColumns(headerInfo.headerRow, dataRows);
+    },
+  });
 
-    const headerInfo = findHeaderRow(rows);
-    if (!headerInfo) continue;
+  if (!found) return;
 
-    const { headerRow, headerRowIdx } = headerInfo;
-    const dataRows = rows.slice(headerRowIdx + 1);
-    const cols = detectColumns(headerRow, dataRows);
-    if (!cols) continue;
+  const table = found.table;
+  if (table.dataset.rsfPluginDone) return;
 
-    processStatsTable(table, headerRow, dataRows, cols);
-  }
-}
+  const rows = found.rows;
+  const headerInfo = findHeaderRow(rows, ['PR', 'WR']);
+  if (!headerInfo) return;
 
-function findHeaderRow(rows) {
-  return findHeaderRowByLabels(rows, ['PR', 'WR']);
+  const { headerRow, headerRowIdx } = headerInfo;
+  const dataRows = rows.slice(headerRowIdx + 1);
+  const cols = detectColumns(headerRow, dataRows);
+  if (!cols) return;
+
+  processStatsTable(table, headerRow, dataRows, cols);
 }
 
 // Find PR and WR indices from header text.

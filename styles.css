@@ -38,7 +38,9 @@
 /* Rally search bar (rally_online.php) */
 .rsf-plugin-search-bar {
   display: flex;
+  flex-direction: row;
   align-items: center;
+  vertical-align: middle;
   gap: 10px;
   margin-bottom: 8px;
   justify-content: center;
@@ -75,6 +77,10 @@
   font-size: 13px;
   color: #000;
   white-space: nowrap;
+}
+
+.rsf-plugin-hide-pw-cb {
+  vertical-align: middle;
 }
 
 /* Favourites — star column header */
