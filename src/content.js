@@ -14,7 +14,7 @@ function init() {
   switch (page) {
     case "rally_online.php":
       if (centerbox === "rally_results.php" && rallyId) {
-        addRallyResultsDiff(rallyId);
+        addRallyResultsDiff();
       } else if (centerbox === "rally_results_stres.php") {
         addStageResultsSummary();
         mountSubclassFilter();

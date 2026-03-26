@@ -20,13 +20,3 @@ export function defaultNormalize(text) {
 export function getCellTexts(row, normalize = (text) => text) {
   return getDirectCells(row).map((cell) => normalize(cell.textContent));
 }
-
-export function findColumnIndex(cells, predicate) {
-  for (let i = 0; i < cells.length; i++) {
-    if (predicate(cells[i], i)) {
-      return i;
-    }
-  }
-
-  return -1;
-}

@@ -77,7 +77,6 @@ function scoreRallyListTable(rows) {
 
   let score = 0;
   let linkedRows = 0;
-  let passwordRows = 0;
   let multiCellRows = 0;
 
   for (const row of dataRows) {
@@ -100,7 +99,6 @@ function scoreRallyListTable(rows) {
     }
 
     if (row.classList.contains('lista_password')) {
-      passwordRows++;
       score += 3;
     }
   }

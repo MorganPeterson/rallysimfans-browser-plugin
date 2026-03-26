@@ -1,5 +1,9 @@
 import { getDirectCells } from './domTable.js';
-import { findFirstMatchingTable, findHeaderRow } from './tableDetection.js';
+import {
+  findFirstMatchingTable,
+  findHeaderRow,
+  findColumnIndexByHeaderText,
+} from './tableDetection.js';
 
 const SURFACES = ['gravel', 'tarmac', 'snow'];
 
@@ -8,6 +12,7 @@ export function addStagesFilter() {
   if (!found) return;
 
   const { table: targetTable, surfaceColIdx, dataRows } = found;
+
   if (targetTable.dataset.rsfStagesFilterDone === '1') return;
   targetTable.dataset.rsfStagesFilterDone = '1';
 
@@ -90,11 +95,7 @@ function findSurfaceHeader(rows) {
   const headerInfo = findHeaderRow(rows, ['Surface']);
   if (!headerInfo) return null;
 
-  const headerCells = getDirectCells(headerInfo.headerRow);
-  const surfaceColIdx = headerCells.findIndex(
-    (cell) => cell.textContent.trim().toLowerCase() === 'surface'
-  );
-
+  const surfaceColIdx = findColumnIndexByHeaderText(headerInfo.headerRow, 'Surface');
   if (surfaceColIdx === -1) return null;
 
   return {

@@ -1,8 +1,15 @@
 import { parseKm, parseTimeToSeconds } from './parse.js';
 import { addUndrivenStage, addDrivenStage, createStageStatsSummary } from './stats.js';
 import { insertStageStatsPanel, updateStageStatsPanel } from './summary.js';
-import { insertSecondsPerKmHeaderAfter, insertSecondsPerKmDataCellAfter } from './secondsPerKmColumn.js';
-import { findFirstMatchingTable, findHeaderRow } from './tableDetection.js';
+import {
+  insertSecondsPerKmHeaderAfter,
+  insertSecondsPerKmDataCellAfter,
+} from './secondsPerKmColumn.js';
+import {
+  findFirstMatchingTable,
+  findHeaderRow,
+  findColumnIndexByHeaderText,
+} from './tableDetection.js';
 
 export function addDiffColumn() {
   const found = findFirstMatchingTable({
@@ -39,15 +46,8 @@ export function addDiffColumn() {
 // Find PR and WR indices from header text.
 // Find km by scanning the first usable data row that contains a km value.
 function detectColumns(headerRow, dataRows) {
-  const headerCells = headerRow.cells;
-  let prIdx = -1;
-  let wrIdx = -1;
-
-  for (let i = 0; i < headerCells.length; i++) {
-    const text = headerCells[i].textContent.trim().toUpperCase();
-    if (text === 'PR') prIdx = i;
-    else if (text === 'WR') wrIdx = i;
-  }
+  const prIdx = findColumnIndexByHeaderText(headerRow, 'PR');
+  const wrIdx = findColumnIndexByHeaderText(headerRow, 'WR');
 
   if (prIdx === -1 || wrIdx === -1) return null;
 
@@ -56,7 +56,6 @@ function detectColumns(headerRow, dataRows) {
   for (const row of dataRows) {
     const cells = row.cells;
 
-    // Skip short/banner rows that cannot contain the needed columns.
     if (cells.length <= wrIdx) continue;
 
     for (let i = 0; i < cells.length; i++) {

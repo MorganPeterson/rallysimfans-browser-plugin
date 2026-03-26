@@ -2,7 +2,7 @@ import { getDirectTableRows } from "./domTable.js";
 import { appendSecondsPerKmDataCell, appendSecondsPerKmHeader } from "./secondsPerKmColumn.js";
 import { parseDiffToSeconds } from "./parse.js";
 
-export async function addRallyResultsDiff(rallyId) {
+export async function addRallyResultsDiff() {
     const totalKm = await fetchRallyTotalKm();
     if (!totalKm || totalKm <= 0) return;
 
