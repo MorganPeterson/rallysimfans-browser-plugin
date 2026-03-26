@@ -1,8 +1,10 @@
+import { getDirectTableRows } from "./domTable";
+
 export function addRallySearchFilter() {
     const table = findRallyListTable();
     if (!table || table.dataset.rsfSearchDone) return;
 
-    const allRows = getDirectTableRowsBasic(table);
+    const allRows = getDirectTableRows(table, { includeTfoot: false });
     if (allRows.length < 2) return;
 
     const headerRow = allRows[0];
@@ -58,12 +60,6 @@ export function addRallySearchFilter() {
     applyFilters();
 }
 
-function getDirectTableRowsBasic(table) {
-    return Array.from(table.querySelectorAll(
-        ':scope > tr, :scope > thead > tr, :scope > tbody > tr'
-    ));
-}
-
 function findRallyListTable() {
     const tables = document.querySelectorAll('table');
 
@@ -71,7 +67,7 @@ function findRallyListTable() {
     let bestScore = -1;
 
     for (const table of tables) {
-        const rows = getDirectTableRowsBasic(table);
+        const rows = getDirectTableRows(table, { includeTfoot: false});
         if (rows.length < 2) continue;
 
         const score = scoreRallyListTable(rows);

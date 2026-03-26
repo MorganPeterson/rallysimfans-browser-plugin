@@ -1,7 +1,6 @@
+import { getDirectTableRows } from "./domTable.js";
+import { appendSecondsPerKmDataCell, appendSecondsPerKmHeader } from "./secondsPerKmColumn.js";
 import { parseDiffToSeconds } from "./parse.js";
-import { setSecondsPerKmCell } from "./format.js";
-import { getDirectTableRows } from "./userstats";
-
 
 export async function addRallyResultsDiff(rallyId) {
     const totalKm = await fetchRallyTotalKm();
@@ -12,14 +11,14 @@ export async function addRallyResultsDiff(rallyId) {
     for (const table of resultTables) {
         if (table.dataset.rsfResultsDiffDone) continue;
 
-        const rows = getDirectTableRows(table);
+        const rows = getDirectTableRows(table, { includeTfoot: false });
         if (!rows.length) continue;
 
         let touched = false;
 
         for (const row of rows) {
             if (row.classList.contains('fejlec2')) {
-                insertRallyResultsHeaderCell(row, totalKm);
+                appendSecondsPerKmHeader(row, `Seconds per km (Total: ${totalKm} km)`);
                 touched = true;
                 continue;
             }
@@ -27,7 +26,10 @@ export async function addRallyResultsDiff(rallyId) {
             const diffCell = row.querySelector('.rally_results_diff_first');
             if (!diffCell) continue;
 
-            insertRallyResultsDataCell(row, diffCell.textContent, totalKm);
+            const diffSec = parseDiffToSeconds(diffCell.textContent);
+            const spkm = diffSec === null ? null : diffSec / totalKm;
+
+            appendSecondsPerKmDataCell(row, spkm, { zeroAsDash: true });
             touched = true;
         }
 
@@ -63,33 +65,4 @@ function extractTotalKmFromHtml(html) {
 
     const km = Number(match[1].replace(',', '.'));
     return Number.isFinite(km) ? km : null;
-}
-
-function insertRallyResultsHeaderCell(row, totalKm) {
-    if (row.querySelector('.rsf-plugin-header')) return;
-
-    const th = document.createElement('td');
-    th.className = 'rsf-plugin-header';
-    th.textContent = 's/km';
-    th.title = `Seconds per km behind the leader (total rally distance: ${totalKm} km)`;
-
-    row.appendChild(th);
-}
-
-function insertRallyResultsDataCell(row, diffText, totalKm) {
-    if (row.querySelector('.rsf-plugin-diff')) return;
-
-    const td = document.createElement('td');
-    td.align = 'center';
-
-    const diffSec = parseDiffToSeconds(diffText);
-    if (diffSec === null) {
-        setSecondsPerKmCell(td, null);
-        row.appendChild(td);
-        return;
-    }
-
-    const spkm = diffSec / totalKm;
-    setSecondsPerKmCell(td, spkm, { zeroAsDash: true });
-    row.appendChild(td);
 }

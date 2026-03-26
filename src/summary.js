@@ -5,6 +5,7 @@ import {
   getSecondsPerKmClass,
   getConsistencyClass,
 } from './format.js';
+import { renderSummaryMetric } from './summaryMetric.js';
 
 const SUMMARY_TOOLTIPS = {
   average: 'Average seconds per kilometer slower than the world record across visible driven stages.',
@@ -19,7 +20,6 @@ const SUMMARY_TOOLTIPS = {
 
 export function insertStageStatsPanel(table) {
   let panel = table.previousElementSibling;
-
   if (panel && panel.classList.contains('rsf-plugin-summary')) {
     return panel;
   }
@@ -35,78 +35,53 @@ export function updateStageStatsPanel(panel, stats) {
   const summary = summarizeStageStats(stats);
 
   panel.innerHTML = `
-    ${renderSummaryMetric(
-      'Avg',
-      formatSecondsPerKm(summary.average),
-      getSecondsPerKmClass(summary.average),
-      SUMMARY_TOOLTIPS.average
-    )}
-    ${renderSummaryMetric(
-      'Median',
-      formatSecondsPerKm(summary.median),
-      getSecondsPerKmClass(summary.median),
-      SUMMARY_TOOLTIPS.median
-    )}
-    ${renderSummaryMetric(
-      'Consistency',
-      formatConsistency(summary.consistency),
-      getConsistencyClass(summary.consistency),
-      SUMMARY_TOOLTIPS.consistency
-    )}
-    ${renderSummaryMetric(
-      'Best',
-      formatSecondsPerKm(summary.best),
-      getSecondsPerKmClass(summary.best),
-      SUMMARY_TOOLTIPS.best
-    )}
-    ${renderSummaryMetric(
-      'Worst',
-      formatSecondsPerKm(summary.worst),
-      getSecondsPerKmClass(summary.worst),
-      SUMMARY_TOOLTIPS.worst
-    )}
-    ${renderSummaryMetric(
-      'Driven',
-      String(summary.drivenCount),
-      '',
-      SUMMARY_TOOLTIPS.drivenCount
-    )}
-    ${renderSummaryMetric(
-      'Undriven',
-      String(summary.undrivenCount),
-      '',
-      SUMMARY_TOOLTIPS.undrivenCount
-    )}
-    ${renderSummaryMetric(
-      'Total',
-      String(summary.totalCount),
-      '',
-      SUMMARY_TOOLTIPS.totalCount
-    )}
+    ${renderSummaryMetric({
+      label: 'Avg',
+      value: formatSecondsPerKm(summary.average),
+      valueClass: getSecondsPerKmClass(summary.average),
+      tooltip: SUMMARY_TOOLTIPS.average
+    })}
+    ${renderSummaryMetric({
+      label: 'Median',
+      value: formatSecondsPerKm(summary.median),
+      valueClass: getSecondsPerKmClass(summary.median),
+      tooltip: SUMMARY_TOOLTIPS.median
+    })}
+    ${renderSummaryMetric({
+      label: 'Consistency',
+      value: formatConsistency(summary.consistency),
+      valueClass: getConsistencyClass(summary.consistency),
+      tooltip: SUMMARY_TOOLTIPS.consistency
+    })}
+    ${renderSummaryMetric({
+      label: 'Best',
+      value: formatSecondsPerKm(summary.best),
+      valueClass: getSecondsPerKmClass(summary.best),
+      tooltip: SUMMARY_TOOLTIPS.best
+    })}
+    ${renderSummaryMetric({
+      label: 'Worst',
+      value: formatSecondsPerKm(summary.worst),
+      valueClass: getSecondsPerKmClass(summary.worst),
+      tooltip: SUMMARY_TOOLTIPS.worst
+    })}
+    ${renderSummaryMetric({
+      label: 'Driven',
+      value: String(summary.drivenCount),
+      valueClass: '',
+      tooltip: SUMMARY_TOOLTIPS.drivenCount
+    })}
+    ${renderSummaryMetric({
+      label: 'Undriven',
+      value: String(summary.undrivenCount),
+      valueClass: '',
+      tooltip: SUMMARY_TOOLTIPS.undrivenCount
+    })}
+    ${renderSummaryMetric({
+      label: 'Total',
+      value: String(summary.totalCount),
+      valueClass: '',
+      tooltip: SUMMARY_TOOLTIPS.totalCount
+    })}
   `;
-}
-
-function renderSummaryMetric(label, value, valueClass = '', tooltip = '') {
-  const classAttr = valueClass ? ` rsf-plugin-summary-value ${valueClass}` : ' rsf-plugin-summary-value';
-  const titleAttr = escapeHtmlAttr(tooltip);
-
-  return `
-    <div class="rsf-plugin-summary-item">
-      <span class="rsf-plugin-summary-label">${escapeHtml(label)}</span>
-      <span class="${classAttr.trim()}" title="${titleAttr}">${escapeHtml(value)}</span>
-    </div>
-  `;
-}
-
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;');
-}
-
-function escapeHtmlAttr(value) {
-  return escapeHtml(value);
 }

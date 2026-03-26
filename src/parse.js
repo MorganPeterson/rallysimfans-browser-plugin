@@ -59,13 +59,16 @@ export function parseDiffToSeconds(str) {
   // Reject placeholder dash patterns like "-", "- - -", "--", "—"
   if (/^[-—\s]+$/.test(s)) return null;
 
-  if (!s.includes(':')) {
-    if (!/^-?\d+(?:[.,]\d+)?$/.test(s)) return null;
-    const seconds = Number(s.replace(',', '.'));
+  // Allow an optional leading "+"
+  const normalized = s.startsWith('+') ? s.slice(1).trim() : s;
+
+  if (!normalized.includes(':')) {
+    if (!/^-?\d+(?:[.,]\d+)?$/.test(normalized)) return null;
+    const seconds = Number(normalized.replace(',', '.'));
     return Number.isFinite(seconds) ? seconds : null;
   }
 
-  return parseTimeToSeconds(s);
+  return parseTimeToSeconds(normalized);
 }
 
 // Extract km from "13.4 km", "9,7 km", etc.

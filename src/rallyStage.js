@@ -2,9 +2,10 @@ import {
     parseStageResultsTable,
     parseStageResultsRow,
     normalizeText,
-} from "./parse";
-import { summarizeStageResults } from "./stats";
-import { formatSeconds, formatPercent, formatDuration, formatTime } from "./format";
+} from "./parse.js";
+import { summarizeStageResults } from "./stats.js";
+import { formatSeconds, formatPercent, formatTime } from "./format.js";
+import { renderSummaryMetric } from './summaryMetric.js';
 
 const STAGE_RESULTS_TOOLTIPS = {
   positionSensitivity: 'Average gap between adjacent classified finishers. Lower means a tighter field.',
@@ -103,49 +104,28 @@ export function findStageResultsDataTable() {
   return null;
 }
 
-function renderStageResultsSummaryMetric(label, value, tooltip = '') {
-  return `
-    <div class="rsf-plugin-summary-item">
-      <span class="rsf-plugin-summary-label">${escapeStageResultsSummaryHtml(label)}</span>
-      <span
-        class="rsf-plugin-summary-value"
-        title="${escapeStageResultsSummaryHtml(tooltip)}"
-      >${escapeStageResultsSummaryHtml(value)}</span>
-    </div>
-  `;
-}
-
-function escapeStageResultsSummaryHtml(value) {
-  return String(value)
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;');
-}
-
 function renderCurrentUserStageSection(row) {
   return `
-    ${renderStageResultsSummaryMetric(
-      'Position',
-      row ? (row.isSR ? 'SR' : (row.position !== null ? String(row.position) : '—')) : '—',
-      'Your finishing position on this stage.'
-    )}
-    ${renderStageResultsSummaryMetric(
-      'Gap to Leader',
-      row ? `+${formatSeconds(row.gapToLeaderSec)}` : '—',
-      'Your time difference to the stage winner.'
-    )}
-    ${renderStageResultsSummaryMetric(
-      'Gap to Previous',
-      row ? `+${formatSeconds(row.gapToPrevSec)}` : '—',
-      'Your time difference to the driver immediately ahead of you.'
-    )}
-    ${renderStageResultsSummaryMetric(
-      'Stage Time',
-      row ? `${formatSeconds(row.stageTimeSec)}` : '—',
-      'Your recorded stage time.'
-    )}
+    ${renderSummaryMetric({
+      label: 'Position',
+      value: row ? (row.isSR ? 'SR' : (row.position !== null ? String(row.position) : '—')) : '—',
+      tooltip: 'Your finishing position on this stage.'
+    })}
+    ${renderSummaryMetric({
+      label: 'Gap to Leader',
+      value: row ? `+${formatSeconds(row.gapToLeaderSec)}` : '—',
+      tooltip: 'Your time difference to the stage winner.'
+    })}
+    ${renderSummaryMetric({
+      label: 'Gap to Previous',
+      value: row ? `+${formatSeconds(row.gapToPrevSec)}` : '—',
+      tooltip: 'Your time difference to the driver immediately ahead of you.'
+    })}
+    ${renderSummaryMetric({
+      label: 'Stage Time',
+      value: row ? `${formatSeconds(row.stageTimeSec)}` : '—',
+      tooltip: 'Your recorded stage time.'
+    })}
   `;
 }
 
@@ -156,8 +136,16 @@ function updateStageResultsSummaryPanel(panel, summary, currentUser) {
     <div class="rsf-plugin-stage-summary-user">
     <div class="rsf-plugin-summary-title">Stage Summary</div>
     ${renderCurrentUserStageSection(currentUser)}
-    ${renderStageResultsSummaryMetric('Typical Gap', `+${formatSeconds(summary.positionSensitivity)}`, STAGE_RESULTS_TOOLTIPS.positionSensitivity)}
-    ${renderStageResultsSummaryMetric('Stage SR Rate', `${formatPercent(summary.srRate)}%`, STAGE_RESULTS_TOOLTIPS.srRate)}
+    ${renderSummaryMetric({
+      label: 'Typical Gap',
+      value: `+${formatSeconds(summary.positionSensitivity)}`,
+      tooltip: STAGE_RESULTS_TOOLTIPS.positionSensitivity
+    })}
+    ${renderSummaryMetric({
+      label: 'Stage SR Rate',
+      value: `${formatPercent(summary.srRate)}%`,
+      tooltip: STAGE_RESULTS_TOOLTIPS.srRate
+    })}
     </div>
     <div class="rsf-plugin-stage-summary-side">
     ${renderGapComparisonSection(summary.classifiedRows)}
