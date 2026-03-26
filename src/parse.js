@@ -114,7 +114,7 @@ export function parseStageResultsTable(table) {
   return parseResultsTable(table, parseStageResultsRow);
 }
 
-function isDashValue(text) {
+export function isDashValue(text) {
   return /^[-—\s]+$/.test(String(text ?? '').trim());
 }
 

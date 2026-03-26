@@ -169,12 +169,14 @@
 .rsf-plugin-filter label {
   cursor: pointer;
   user-select: none;
+  color: black;
 }
 
 .rsf-plugin-filter-cb {
   margin-right: 5px;
   cursor: pointer;
   accent-color: #ffcc00;
+  vertical-align: middle;
 }
 
 .rsf-plugin-summary {

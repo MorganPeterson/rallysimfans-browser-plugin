@@ -9,7 +9,7 @@ export function applyZebraStriping(items) {
     row.classList.remove('paros', 'paratlan');
 
     if (row.classList.contains('lista_kiemelt2')) {
-      // Keep the current user's row highlighted and don't include it in the striping count
+      // Keep the current user's row highlighted
       stripeIndex++;
       continue;
     }

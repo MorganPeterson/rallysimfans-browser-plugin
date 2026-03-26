@@ -8,6 +8,11 @@ import { formatSeconds, formatPercent, formatTime } from "./format.js";
 import { renderSummaryMetric } from './summaryMetric.js';
 import { findFirstMatchingTable, tableHasMatchingRow } from "./tableDetection.js";
 import { applyZebraStriping } from "./domTable.js";
+import {
+  collectAvailableSubclasses,
+  createSubclassFilterBar,
+  getAbsoluteValue,
+} from "./subclassFilterShared.js";
 
 const STAGE_RESULTS_TOOLTIPS = {
   positionSensitivity: 'Average gap between adjacent classified finishers. Lower means a tighter field.',
@@ -352,41 +357,6 @@ function restoreRowValues(row) {
   row.style.display = row.dataset.origDisplay ?? '';
 }
 
-function collectAvailableSubclasses(items, selectedBaseGroupId, subgroupNames = {}) {
-  const subgroupMap = new Map();
-
-  for (const item of items) {
-    const carDetails = item.carDetails;
-    if (!carDetails) continue;
-    if (carDetails.base_class_id !== selectedBaseGroupId) continue;
-    if (!carDetails.sub_class_id) continue;
-
-    const subClassId = carDetails.sub_class_id;
-    const subClassName = carDetails.sub_class_name;
-
-    if (!subgroupMap.has(subClassId)) {
-      subgroupMap.set(subClassId, {
-        id: subClassId,
-        label: subgroupNames[subClassId] ?? subClassName ?? `Subclass ${subClassId}`,
-      });
-    }
-  }
-
-  return [...subgroupMap.values()];
-}
-
-function getAbsoluteValue(item) {
-  if (Number.isFinite(item.stageTimeSec)) {
-    return item.stageTimeSec;
-  }
-
-  if (Number.isFinite(item.gapToLeaderSec)) {
-    return item.gapToLeaderSec;
-  }
-
-  return null;
-}
-
 function recalculateTable(items, selectedSubgroupId) {
   for (const item of items) {
     restoreRowValues(item.row);
@@ -482,7 +452,7 @@ function recalculateTable(items, selectedSubgroupId) {
   }
 }
 
-export function mountSubclassFilter({ subgroupNames = {} } = {}) {
+export function mountSubclassFilter() {
   const selectedCell = document.querySelector('.car_group_list_select');
   const onclick = selectedCell?.getAttribute('onclick') || '';
   const cgMatches = [...onclick.matchAll(/cg=(\d+)/g)];
@@ -509,7 +479,6 @@ export function mountSubclassFilter({ subgroupNames = {} } = {}) {
   const subclasses = collectAvailableSubclasses(
     [...leftItems, ...rightItems],
     selectedBaseGroupId,
-    subgroupNames
   );
 
   if (subclasses.length < 2) {
@@ -524,22 +493,7 @@ export function mountSubclassFilter({ subgroupNames = {} } = {}) {
   let bar = document.querySelector('.rsf-plugin-subclass-bar');
   if (bar) bar.remove();
 
-  bar = document.createElement('div');
-  bar.className = 'rsf-plugin-subclass-bar';
-  bar.innerHTML = `
-    <button type="button" class="rsf-plugin-subclass-btn is-active" data-subgroup="">
-      All subclasses
-    </button>
-    ${subclasses
-      .map(
-        s => `
-          <button type="button" class="rsf-plugin-subclass-btn" data-subgroup="${s.id}">
-            ${s.label}
-          </button>
-        `
-      )
-      .join('')}
-  `;
+  bar = createSubclassFilterBar(subclasses);
 
   bar.addEventListener('click', event => {
     const btn = event.target.closest('button[data-subgroup]');
