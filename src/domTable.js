@@ -6,15 +6,20 @@ export function applyZebraStriping(items) {
   for (const item of visible) {
     const row = item.row;
 
-    row.classList.remove('paros', 'paratlan');
-
     if (row.classList.contains('lista_kiemelt2')) {
       // Keep the current user's row highlighted
       stripeIndex++;
       continue;
     }
 
-    row.classList.add(stripeIndex % 2 === 0 ? 'paros' : 'paratlan');
+    if (row.classList.contains('paros_sr') || row.classList.contains('paratlan_sr')) {
+      row.classList.remove('paros_sr', 'paratlan_sr');
+      row.classList.add(stripeIndex % 2 === 0 ? 'paros_sr' : 'paratlan_sr');
+    } else {
+      row.classList.remove('paros', 'paratlan');
+      row.classList.add(stripeIndex % 2 === 0 ? 'paros' : 'paratlan');
+    }
+
     stripeIndex++;
   }
 }

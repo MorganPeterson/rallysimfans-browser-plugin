@@ -61,30 +61,24 @@ export function setSecondsPerKmCell(cell, spkm, options = {}) {
   cell.classList.add(getSecondsPerKmClass(spkm));
 }
 
-export function formatTime(seconds) {
-  if (!Number.isFinite(seconds)) return '—';
+export function formatTime(totalSeconds) {
+  if (!Number.isFinite(totalSeconds)) return "-";
 
-  const abs = Math.abs(seconds);
+  const totalMs = Math.round(totalSeconds * 1000);
 
-  const totalSeconds = Math.floor(abs);
-  const millis = Math.round((abs - totalSeconds) * 1000);
+  const minutes = Math.floor(totalMs / 60000);
+  const seconds = Math.floor((totalMs % 60000) / 1000);
+  const milliseconds = totalMs % 1000;
 
-  const s = totalSeconds % 60;
-  const m = Math.floor(totalSeconds / 60) % 60;
-  const h = Math.floor(totalSeconds / 3600);
+  const mm = String(minutes); // <-- no padding, can exceed 60
+  const ss = String(seconds);
+  const mmm = String(milliseconds).padStart(3, "0");
 
-  const msStr = String(millis).padStart(3, '0');
-  const sStr = String(s).padStart(m > 0 || h > 0 ? 2 : 1, '0');
-
-  if (h > 0) {
-    return `${h}:${String(m).padStart(2, '0')}:${sStr}.${msStr}`;
+  if (minutes === 0) {
+    return `${ss}.${mmm}`;
   }
 
-  if (m > 0) {
-    return `${m}:${sStr}.${msStr}`;
-  }
-
-  return `${s}.${msStr}`;
+  return `${mm}:${ss}.${mmm}`;
 }
 
 export function formatDuration(seconds) {

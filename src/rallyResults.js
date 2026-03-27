@@ -228,11 +228,13 @@ function cacheOriginalValues(items) {
   for (const item of items) {
     const row = item.row;
 
+    const timeCell = row.querySelector(".rally_results_time");
+
     item.originalValues = {
       display: row.style.display || "",
       background: row.style.background || "",
       pos: row.querySelector(".rally_results_poz")?.textContent ?? "",
-      time: row.querySelector(".rally_results_time")?.textContent ?? "",
+      time: timeCell?.querySelector("b")?.textContent ?? "",
       diffPrev: row.querySelector(".rally_results_diff_prev")?.textContent ?? "",
       diffFirst: row.querySelector(".rally_results_diff_first")?.textContent ?? "",
       spkm: row.lastElementChild?.textContent ?? "",

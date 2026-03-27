@@ -136,7 +136,7 @@ function cacheOriginalRowValues(row) {
 
   row.dataset.rsfSubclassInit = '1';
   row.dataset.origPos = posCell?.textContent ?? '';
-  row.dataset.origTime = timeCell?.textContent ?? '';
+  row.dataset.origTime = timeCell?.querySelector('b')?.textContent ?? '';
   row.dataset.origDiffPrev = diffPrevCell?.textContent ?? '';
   row.dataset.origDiffFirst = diffFirstCell?.textContent ?? '';
   row.dataset.origDisplay = row.style.display ?? '';
