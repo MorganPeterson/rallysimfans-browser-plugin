@@ -286,7 +286,7 @@ function updateResultsSummaryPanel(panel, summary, currentUser, renderUser) {
       tooltip: RESULTS_TOOLTIPS.positionSensitivity
     })}
     ${renderSummaryMetric({
-      label: 'Stage SR Rate',
+      label: 'SR Rate',
       value: `${formatPercent(summary.srRate)}%`,
       tooltip: RESULTS_TOOLTIPS.srRate
     })}

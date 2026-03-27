@@ -1,3 +1,6 @@
+### V1.5.1
+- fixed bug where stage results SR was not being calculated
+
 ### V1.5.0
 - Added summary panel to final standings page
 - Added buttons for filtering down into certain classes by types or eras of cars

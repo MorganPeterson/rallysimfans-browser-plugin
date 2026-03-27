@@ -8,6 +8,7 @@ import {
   parseTimeToSeconds,
   normalizeText,
   isDashValue,
+  parseIntegerStrict,
 } from "./parse.js";
 import { getCarByName } from "./cars.js";
 import {
@@ -176,13 +177,14 @@ function parseRallyResultsRow(row) {
   const diffPrevCell = row.querySelector(".rally_results_diff_prev") || cells[5] || null;
   const diffFirstCell = row.querySelector(".rally_results_diff_first") || cells[6] || null;
   const isCurrentUser = row.classList.contains("lista_kiemelt2");
+  const numSRs = row.querySelector(".rally_results_sr") || cells[8] || null;
 
   if (!posCell || !nameCell || !carCell || !timeCell || !diffPrevCell || !diffFirstCell) {
     return null;
   }
 
   const posText = normalizeText(posCell.textContent).toUpperCase();
-  const isSR = posText === "SR" || posText === "=";
+  const isSR = parseIntegerStrict(numSRs.textContent) != null;
 
   if (!/^\d+$/.test(posText) && !isSR) {
     return null;
