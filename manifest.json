@@ -1,14 +1,16 @@
 {
   "manifest_version": 3,
   "name": "RallySimFans Browser Plugin",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "description": "Enhances RallySimFans website with more information",
   "content_scripts": [
     {
       "matches": [
         "*://*.rallysimfans.hu/*"
       ],
-      "js": ["dist/content.js"],
+      "js": [
+        "dist/content.js"
+      ],
       "css": [
         "styles.css"
       ],

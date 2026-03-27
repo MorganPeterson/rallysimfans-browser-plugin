@@ -1,3 +1,4 @@
 node_modules
 release/*
 *.zip
+src/car_map.json

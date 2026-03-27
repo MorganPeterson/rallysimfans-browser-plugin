@@ -1,4 +1,10 @@
-/* RallySimFans plugin — s/km diff column */
+.paros {
+  background-color: #efefef !important;
+}
+
+.paratlan {
+  background-color: #c5c5c5 !important;
+}
 
 .rsf-plugin-header {
   width: 90px;
@@ -38,7 +44,9 @@
 /* Rally search bar (rally_online.php) */
 .rsf-plugin-search-bar {
   display: flex;
+  flex-direction: row;
   align-items: center;
+  vertical-align: middle;
   gap: 10px;
   margin-bottom: 8px;
   justify-content: center;
@@ -75,6 +83,10 @@
   font-size: 13px;
   color: #000;
   white-space: nowrap;
+}
+
+.rsf-plugin-hide-pw-cb {
+  vertical-align: middle;
 }
 
 /* Favourites — star column header */
@@ -157,12 +169,14 @@
 .rsf-plugin-filter label {
   cursor: pointer;
   user-select: none;
+  color: black;
 }
 
 .rsf-plugin-filter-cb {
   margin-right: 5px;
   cursor: pointer;
   accent-color: #ffcc00;
+  vertical-align: middle;
 }
 
 .rsf-plugin-summary {
@@ -268,4 +282,49 @@
 .rsf-plugin-gap-result {
   font-size: 14px;
   font-weight: bold;
+}
+
+.rsf-plugin-subclass-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px;
+  margin: 8px 0 10px;
+}
+
+.rsf-plugin-subclass-label {
+  margin-right: 6px;
+  font-weight: bold;
+  color: #222;
+}
+
+.rsf-plugin-subclass-btn {
+  min-width: 100px;
+  padding: 5px 6px;
+  text-align: center;
+  border: 1px solid #808080;
+  background: #dcdcdc;
+  color: #111;
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.rsf-plugin-subclass-btn:hover {
+  background: #e7e7e7;
+}
+
+.rsf-plugin-subclass-btn:active {
+  background: #8dc2fe;
+}
+
+.rsf-plugin-subclass-btn.is-active {
+  background: #8dc2fe;
+  border-color: #bfbfbf;
+  font-weight: bold;
+}
+
+.rsf-plugin-subclass-btn:focus-visible {
+  outline: 1px solid #333;
+  outline-offset: 1px;
 }

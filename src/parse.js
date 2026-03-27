@@ -1,3 +1,5 @@
+import { getCarByName } from "./cars.js"
+
 // Convert "MM:SS.mmm" or "H:MM:SS.mmm" to total seconds. Returns null on failure.
 export function parseTimeToSeconds(timeStr) {
     if (typeof timeStr !== 'string') return null;
@@ -57,13 +59,16 @@ export function parseDiffToSeconds(str) {
   // Reject placeholder dash patterns like "-", "- - -", "--", "—"
   if (/^[-—\s]+$/.test(s)) return null;
 
-  if (!s.includes(':')) {
-    if (!/^-?\d+(?:[.,]\d+)?$/.test(s)) return null;
-    const seconds = Number(s.replace(',', '.'));
+  // Allow an optional leading "+"
+  const normalized = s.startsWith('+') ? s.slice(1).trim() : s;
+
+  if (!normalized.includes(':')) {
+    if (!/^-?\d+(?:[.,]\d+)?$/.test(normalized)) return null;
+    const seconds = Number(normalized.replace(',', '.'));
     return Number.isFinite(seconds) ? seconds : null;
   }
 
-  return parseTimeToSeconds(s);
+  return parseTimeToSeconds(normalized);
 }
 
 // Extract km from "13.4 km", "9,7 km", etc.
@@ -96,12 +101,25 @@ function parseResultsTable(table, rowParser) {
   return results;
 }
 
+function parseCompetitorId(row) {
+  const link = row.querySelector('.stage_results_name a[href*="user_stats="]');
+  if (!link) return null;
+
+  const href = link.getAttribute('href') || null;
+  const match = href ? href.match(/user_stats=(\d+)/) : null;
+  return match ? Number(match[1]) : null;
+}
+
 export function parseStageResultsTable(table) {
   return parseResultsTable(table, parseStageResultsRow);
 }
 
+export function isDashValue(text) {
+  return /^[-—\s]+$/.test(String(text ?? '').trim());
+}
+
 export function parseStageResultsRow(row) {
-  if (!row || !row.cells || row.cells.length < 6) return null;
+  if (!row || !row.cells || row.cells.length < 5) return null;
 
   const posCell = row.querySelector('.stage_results_poz');
   const timeCell = row.querySelector('.stage_results_time');
@@ -109,26 +127,53 @@ export function parseStageResultsRow(row) {
   const diffFirstCell = row.querySelector('.stage_results_diff_first');
   const isCurrentUser = row.classList.contains('lista_kiemelt2');
 
+  const nameSamps = row.querySelectorAll('.stage_results_name samp');
+  const carName = nameSamps[nameSamps.length - 1]; // Last <samp> in the name cell contains the car name
+
   if (!posCell || !timeCell || !diffPrevCell || !diffFirstCell) {
     return null;
   }
 
-  const posText = normalizeText(posCell.textContent);
+  const posText = normalizeText(posCell.textContent).toUpperCase();
+  const isSR = posText === 'SR' || posText === '=';
 
-  if (!/^\d+$/.test(posText) && posText.toUpperCase() !== 'SR') {
+  if (!/^\d+$/.test(posText) && !isSR) {
     return null;
   }
 
-  const isSR = posText.toUpperCase() === 'SR';
   const position = isSR ? null : parseIntegerStrict(posText);
+  const carDetails = carName ? getCarByName(normalizeText(carName.textContent)) : null;
+  const competitorId = parseCompetitorId(row);
+
+  const rawTimeText =
+    timeCell.querySelector('b')?.textContent ??
+    timeCell.childNodes[0]?.textContent ??
+    '';
+
+  let gapToPrevSec = parseStageResultGap(diffPrevCell.textContent);
+  let gapToLeaderSec = parseStageResultGap(diffFirstCell.textContent);
+
+  const isLeader = position === 1 && !isSR;
+
+  if (isLeader) {
+    if (isDashValue(diffPrevCell.textContent)) {
+      gapToPrevSec = 0;
+    }
+
+    if (isDashValue(diffFirstCell.textContent)) {
+      gapToLeaderSec = 0;
+    }
+  }
 
   return {
+    competitorId,
     position,
     isSR,
     isCurrentUser,
-    stageTimeSec: parseStageResultGap(timeCell.textContent),
-    gapToPrevSec: parseStageResultGap(diffPrevCell.textContent),
-    gapToLeaderSec: parseStageResultGap(diffFirstCell.textContent),
+    carDetails,
+    stageTimeSec: parseResultTime(rawTimeText),
+    gapToPrevSec,
+    gapToLeaderSec,
     rowClassName: row.className || '',
   };
 }
@@ -146,4 +191,65 @@ export function parseIntegerStrict(value) {
 export function normalizeText(value) {
   if (typeof value !== 'string') return '';
   return value.replace(/\s+/g, ' ').trim();
+}
+
+export function parseGap(text) {
+  const s = normalizeText(text).replace(/^\+/, '');
+  if (!s || s === '-' || s === '00.000') return 0;
+
+  const parts = s.split(':');
+
+  if (parts.length === 1) {
+    const seconds = Number(parts[0]);
+    return Number.isFinite(seconds) ? seconds : null;
+  }
+
+  if (parts.length === 2) {
+    const [min, sec] = parts;
+    const minutes = Number(min);
+    const seconds = Number(sec);
+    if (!Number.isFinite(minutes) || !Number.isFinite(seconds)) return null;
+    return minutes * 60 + seconds;
+  }
+
+  if (parts.length === 3) {
+    const [hrs, min, sec] = parts;
+    const hours = Number(hrs);
+    const minutes = Number(min);
+    const seconds = Number(sec);
+    if (!Number.isFinite(hours) || !Number.isFinite(minutes) || !Number.isFinite(seconds)) {
+      return null;
+    }
+    return hours * 3600 + minutes * 60 + seconds;
+  }
+
+  return null;
+}
+
+function parseResultTime(text) {
+  const s = normalizeText(text).replace(/^\+/, '');
+  if (!s) return null;
+
+  const parts = s.split(':');
+
+  if (parts.length === 2) {
+    const [min, sec] = parts;
+    const minutes = Number(min);
+    const seconds = Number(sec);
+    if (!Number.isFinite(minutes) || !Number.isFinite(seconds)) return null;
+    return minutes * 60 + seconds;
+  }
+
+  if (parts.length === 3) {
+    const [hrs, min, sec] = parts;
+    const hours = Number(hrs);
+    const minutes = Number(min);
+    const seconds = Number(sec);
+    if (!Number.isFinite(hours) || !Number.isFinite(minutes) || !Number.isFinite(seconds)) {
+      return null;
+    }
+    return hours * 3600 + minutes * 60 + seconds;
+  }
+
+  return null;
 }

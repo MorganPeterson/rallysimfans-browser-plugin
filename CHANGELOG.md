@@ -1,3 +1,9 @@
+### V1.5.0
+- Added summary panel to final standings page
+- Added buttons for filtering down into certain classes by types or eras of cars
+- Updated summary pages to reflect changes in filtering of tables
+- Did a lot of restructuring of code base and code cleanup + more tests
+
 ### V1.4.1
 - reformat of stage summary panel via user feedback
 
