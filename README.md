@@ -1,14 +1,17 @@
 # rallysimfans-browser-plugin
-Browser Plugin for www.rallysimfans.hu website that enhances it with stats and filters.
+Browser extension for [rallysimfans.hu](https://www.rallysimfans.hu/rbr/index.php) website that enhances it with stats and filters.
+
+**Note:** This extension does NOT make server calls to RSF or anywhere else. It works
+only on the data that is rendered in the browser.
 
 This is a fork of [rallysimfans-browser-plugin](https://github.com/AnttiLoponen/rallysimfans-browser-plugin)
 
 ## Features
 
-#### Stage Performance Metrics
+#### Performance Metrics
 - Adds s/km (seconds per kilometer) to rally results and stage record times with
 color coding.
-- A stage summary panel for quickly seeing how you did with drop downs for seeing
+- A summary panel for quickly seeing how you did overall or on a stage with drop downs for seeing
 time diffs between drivers who finished.
 
 #### Stage Filters
@@ -19,7 +22,7 @@ time diffs between drivers who finished.
 - hide password protected rallys
 - pin favorite rallies to the top
 
-#### Summary table for stages
+#### Summary table for overall and stages
 - Automatically calculates:
     - Average pace
     - Median pace (your typical performance)
@@ -28,6 +31,12 @@ time diffs between drivers who finished.
     - Worst delta for class
     - Driven vs undriven stages
     - Total stages
+
+#### Sub-Classes for certain classes
+    - compare times from different eras of WRC cars
+    - compare times between AWD and RWD cars in Group B and Group 4
+    - compare times between kit/maxi in A7 or pre-kit cars
+    - compare times between different eras of A8
 
 ## Installation
 This extension should work on any browser but the installation process for Firefox
@@ -98,12 +107,4 @@ Watch mode
 npm run test:watch
 ```
 
-What is tested:
-- time string parsing
-- distance string parsing
-- calculations:
-    - average
-    - median
-    - consistency
-    - etc.
-- formatting logic
+See the tests in the `test/` directory for what is tested.
