@@ -7,7 +7,7 @@ import { summarizeStageResults } from "./stats.js";
 import { formatTime } from "./format.js";
 import {
   insertResultsSummaryPanel,
-  updateResultsSummaryPanel,
+  updateResultsSummaryStagePanel,
 } from "./summary.js";
 import { findFirstMatchingTable, tableHasMatchingRow } from "./tableDetection.js";
 import { applyZebraStriping } from "./domTable.js";
@@ -64,7 +64,7 @@ function refreshStageResultsSummary(leftItems = null) {
   const stageSummary = summarizeStageResults(stageRows);
   const currentUser = findCurrentUserStageResult(stageRows);
 
-  updateResultsSummaryPanel(stagePanel, stageSummary, currentUser);
+  updateResultsSummaryStagePanel(stagePanel, stageSummary, currentUser);
 }
 
 function findCurrentUserStageResult(rows) {

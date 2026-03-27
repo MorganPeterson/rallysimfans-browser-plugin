@@ -98,7 +98,7 @@ export function insertResultsSummaryPanel(containerCell, className) {
   return panel;
 }
 
-export function renderCurrentUserSection(row) {
+function renderCurrentUserSection(row) {
   return `
     ${renderSummaryMetric({
       label: 'Position',
@@ -118,7 +118,18 @@ export function renderCurrentUserSection(row) {
     `;
 }
 
-export function renderCurrentUserStageSection(row) {
+function renderCurrentUserResultsSection(row) {
+  return `
+    ${renderCurrentUserSection(row)}
+    ${renderSummaryMetric({
+      label: 'Finish Time',
+      value: row ? `${formatSeconds(row.rallyTimeSec)}` : '—',
+      tooltip: 'Your recorded stage time.'
+    })}
+  `;
+}
+
+function renderCurrentUserStageSection(row) {
   return `
     ${renderCurrentUserSection(row)}
     ${renderSummaryMetric({
@@ -254,13 +265,21 @@ function renderGapComparisonSection(classifiedRows) {
   `;
 }
 
-export function updateResultsSummaryPanel(panel, summary, currentUser) {
+export function updateResultsSummaryStagePanel(panel, summary, currentUser) {
+  return updateResultsSummaryPanel(panel, summary, currentUser, renderCurrentUserStageSection)
+}
+
+export function updateResultsSummaryResultsPanel(panel, summary, currentUser) {
+  return updateResultsSummaryPanel(panel, summary, currentUser, renderCurrentUserResultsSection)
+}
+
+function updateResultsSummaryPanel(panel, summary, currentUser, renderUser) {
   panel.innerHTML = `
     <div class="rsf-plugin-stage-summary-layout">
     <div class="rsf-plugin-stage-summary-main">
     <div class="rsf-plugin-stage-summary-user">
     <div class="rsf-plugin-summary-title">Summary</div>
-    ${renderCurrentUserStageSection(currentUser)}
+    ${renderUser(currentUser)}
     ${renderSummaryMetric({
       label: 'Typical Gap',
       value: `+${formatSeconds(summary.positionSensitivity)}`,

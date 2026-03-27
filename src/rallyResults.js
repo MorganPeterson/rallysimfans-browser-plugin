@@ -19,7 +19,7 @@ import {
     getAbsoluteValue,
     createSubclassFilterBar,
 } from "./subclassFilterShared.js";
-import { insertResultsSummaryPanel, updateResultsSummaryPanel } from "./summary.js";
+import { insertResultsSummaryPanel, updateResultsSummaryResultsPanel } from "./summary.js";
 
 const RALLY_RESULTS_TOOLTIPS = {
   positionSensitivity: "Average gap between adjacent classified finishers in the visible rally results.",
@@ -459,5 +459,5 @@ function refreshRallyResultsSummary(items = null) {
   const summary = summarizeRallyResults(rows);
   const currentUser = findCurrentUserRallyResult(rows);
 
-  updateResultsSummaryPanel(panel, summary, currentUser);
+  updateResultsSummaryResultsPanel(panel, summary, currentUser);
 }
