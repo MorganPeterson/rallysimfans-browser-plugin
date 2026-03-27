@@ -53,4 +53,3 @@ export function createSubclassFilterBar(subclasses) {
 
   return bar;
 }
-

@@ -52,21 +52,14 @@ const BASE_GROUP_ID_TO_CLASS_NAME = new Map([
 const SUBGROUP_ID_TO_CLASS_NAME = new Map([
   [10, "WRC 2013-2016"],
   [11, "WRC 2017-2021"],
-  [21, "Group 4 (pre-1980)"],
-  [22, "Group 4 (1980-1986)"],
-  [23, "Group A5 (pre-1990)"],
-  [24, "Group A5 (1990-1996)"],
+  [21, "Group 4 (RWD)"],
+  [22, "Group 4 (AWD)"],
   [25, "Group A7 (A7K)"],
   [26, "Group A7 (A7)"],
   [30, "Group A8 (pre-1990)"],
   [31, "Group A8 (1990-1995)"],
-  [40, "Group B (B/09)"],
-  [41, "Group B (B/10)"],
-  [42, "Group B (B/12)"],
-  [50, "Group R2 (pre-2015)"],
-  [51, "Group R2 (2015-2020)"],
-  [60, "Group R3 (pre-2014)"],
-  [61, "Group R3 (2014)"],
+  [40, "Group B (RWD)"],
+  [41, "Group B (AWD)"],
 ]);
 
 const CAR_LIST = new Map([
@@ -112,7 +105,7 @@ const CAR_LIST = new Map([
       id: 66,
       carmodel_id: 192,
       base_group_id: 31,
-      subgroup_id: 42,
+      subgroup_id: 41,
     },
   ],
   [
@@ -121,7 +114,7 @@ const CAR_LIST = new Map([
       id: 67,
       carmodel_id: 236,
       base_group_id: 31,
-      subgroup_id: 42,
+      subgroup_id: 41,
     },
   ],
   [
@@ -139,7 +132,7 @@ const CAR_LIST = new Map([
       id: 68,
       carmodel_id: 131,
       base_group_id: 31,
-      subgroup_id: 42,
+      subgroup_id: 41,
     },
   ],
   [
@@ -148,7 +141,7 @@ const CAR_LIST = new Map([
       id: 99,
       carmodel_id: 256,
       base_group_id: 31,
-      subgroup_id: 42,
+      subgroup_id: 40,
     },
   ],
   [
@@ -184,7 +177,7 @@ const CAR_LIST = new Map([
       id: 27,
       carmodel_id: 115,
       base_group_id: 34,
-      subgroup_id: 50,
+      subgroup_id: null,
     },
   ],
   [
@@ -229,7 +222,7 @@ const CAR_LIST = new Map([
       id: 32,
       carmodel_id: 118,
       base_group_id: 35,
-      subgroup_id: 61,
+      subgroup_id: null,
     },
   ],
   [
@@ -301,7 +294,7 @@ const CAR_LIST = new Map([
       id: 97,
       carmodel_id: 119,
       base_group_id: 35,
-      subgroup_id: 60,
+      subgroup_id: null,
     },
   ],
   [
@@ -337,7 +330,7 @@ const CAR_LIST = new Map([
       id: 71,
       carmodel_id: 237,
       base_group_id: 34,
-      subgroup_id: 51,
+      subgroup_id: null,
     },
   ],
   [
@@ -346,7 +339,7 @@ const CAR_LIST = new Map([
       id: 28,
       carmodel_id: 228,
       base_group_id: 34,
-      subgroup_id: 51,
+      subgroup_id: null,
     },
   ],
   [
@@ -427,7 +420,7 @@ const CAR_LIST = new Map([
       id: 33,
       carmodel_id: 83,
       base_group_id: 35,
-      subgroup_id: 60,
+      subgroup_id: null,
     },
   ],
   [
@@ -490,7 +483,7 @@ const CAR_LIST = new Map([
       id: 41,
       carmodel_id: 134,
       base_group_id: 31,
-      subgroup_id: 41,
+      subgroup_id: 40,
     },
   ],
   [
@@ -580,7 +573,7 @@ const CAR_LIST = new Map([
       id: 29,
       carmodel_id: 145,
       base_group_id: 34,
-      subgroup_id: 50,
+      subgroup_id: null,
     },
   ],
   [
@@ -589,7 +582,7 @@ const CAR_LIST = new Map([
       id: 19,
       carmodel_id: 137,
       base_group_id: 22,
-      subgroup_id: 22,
+      subgroup_id: 21,
     },
   ],
   [
@@ -598,7 +591,7 @@ const CAR_LIST = new Map([
       id: 65,
       carmodel_id: 138,
       base_group_id: 31,
-      subgroup_id: 42,
+      subgroup_id: 40,
     },
   ],
   [
@@ -616,7 +609,7 @@ const CAR_LIST = new Map([
       id: 70,
       carmodel_id: 139,
       base_group_id: 31,
-      subgroup_id: 42,
+      subgroup_id: 41,
     },
   ],
   [
@@ -634,7 +627,7 @@ const CAR_LIST = new Map([
       id: 30,
       carmodel_id: 229,
       base_group_id: 34,
-      subgroup_id: 50,
+      subgroup_id: null,
     },
   ],
   [
@@ -688,7 +681,7 @@ const CAR_LIST = new Map([
       id: 52,
       carmodel_id: 209,
       base_group_id: 22,
-      subgroup_id: 22,
+      subgroup_id: 21,
     },
   ],
   [
@@ -697,7 +690,7 @@ const CAR_LIST = new Map([
       id: 23,
       carmodel_id: 141,
       base_group_id: 31,
-      subgroup_id: 42,
+      subgroup_id: 40,
     },
   ],
   [
@@ -724,7 +717,7 @@ const CAR_LIST = new Map([
       id: 34,
       carmodel_id: 47,
       base_group_id: 35,
-      subgroup_id: 60,
+      subgroup_id: null,
     },
   ],
   [
@@ -733,7 +726,7 @@ const CAR_LIST = new Map([
       id: 35,
       carmodel_id: 189,
       base_group_id: 35,
-      subgroup_id: 61,
+      subgroup_id: null,
     },
   ],
   [
@@ -778,7 +771,7 @@ const CAR_LIST = new Map([
       id: 31,
       carmodel_id: 148,
       base_group_id: 34,
-      subgroup_id: 50,
+      subgroup_id: null,
     },
   ],
   [
@@ -859,7 +852,7 @@ const CAR_LIST = new Map([
       id: 59,
       carmodel_id: 216,
       base_group_id: 23,
-      subgroup_id: 24,
+      subgroup_id: null,
     },
   ],
   [
@@ -913,7 +906,7 @@ const CAR_LIST = new Map([
       id: 77,
       carmodel_id: 240,
       base_group_id: 31,
-      subgroup_id: 42,
+      subgroup_id: 40,
     },
   ],
   [
@@ -940,7 +933,7 @@ const CAR_LIST = new Map([
       id: 20,
       carmodel_id: 217,
       base_group_id: 23,
-      subgroup_id: 23,
+      subgroup_id: null,
     },
   ],
   [
@@ -985,7 +978,7 @@ const CAR_LIST = new Map([
       id: 46,
       carmodel_id: 123,
       base_group_id: 23,
-      subgroup_id: 23,
+      subgroup_id: null,
     },
   ],
 ]);

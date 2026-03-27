@@ -133,3 +133,13 @@ export function summarizeStageResults(rows) {
     classifiedRows: classified,
   };
 }
+
+export function getGapBetweenPositions(rows, from, to) {
+  const fromRow = rows.find(row => row.position === from);
+  const toRow = rows.find(row => row.position === to);
+
+  if (!fromRow || !toRow) return null;
+  if (!Number.isFinite(fromRow.gapToLeaderSec) || !Number.isFinite(toRow.gapToLeaderSec)) return null;
+
+  return toRow.gapToLeaderSec - fromRow.gapToLeaderSec;
+}

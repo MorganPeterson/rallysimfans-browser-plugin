@@ -10,12 +10,35 @@ import {
   isDashValue,
 } from "./parse.js";
 import { getCarByName } from "./cars.js";
-import { formatTime, setSecondsPerKmCell } from "./format.js";
+import {
+  formatTime,
+  setSecondsPerKmCell,
+} from "./format.js";
 import {
     collectAvailableSubclasses,
     getAbsoluteValue,
     createSubclassFilterBar,
 } from "./subclassFilterShared.js";
+import { insertResultsSummaryPanel, updateResultsSummaryPanel } from "./summary.js";
+
+const RALLY_RESULTS_TOOLTIPS = {
+  positionSensitivity: "Average gap between adjacent classified finishers in the visible rally results.",
+  srRate: "Percentage of visible drivers marked SR in the rally results.",
+};
+
+function getVisibleParsedRallyRows(items = null) {
+  if (Array.isArray(items) && items.length) {
+    return items
+      .filter(item => item.visible)
+      .map(item => parseRallyResultsRow(item.row))
+      .filter(Boolean);
+  }
+
+  return getRallyResultsRows()
+    .filter(item => item.visible !== false)
+    .map(item => parseRallyResultsRow(item.row))
+    .filter(Boolean);
+}
 
 export async function addRallyResultsDiff() {
   const totalKm = await fetchRallyTotalKm();
@@ -54,6 +77,7 @@ export async function addRallyResultsDiff() {
   }
 
   mountRallySubclassFilter(totalKm);
+  refreshRallyResultsSummary();
 }
 
 function mountRallySubclassFilter(totalKm) {
@@ -236,6 +260,7 @@ function restoreRowValues(rowItem) {
 
 function applyRallySubclassFilter(items, selectedSubgroupId, totalKm) {
   recalculateRallyResultsTable(items, selectedSubgroupId, totalKm);
+  refreshRallyResultsSummary(items);
 }
 
 function recalculateRallyResultsTable(items, selectedSubgroupId, totalKm) {
@@ -372,4 +397,67 @@ function extractTotalKmFromHtml(html) {
 
   const km = Number(match[1].replace(",", "."));
   return Number.isFinite(km) ? km : null;
+}
+
+function findCurrentUserRallyResult(rows) {
+  return rows.find(row => row.isCurrentUser) || null;
+}
+
+function summarizeRallyResults(rows) {
+  const classifiedRows = rows
+    .filter(row => !row.isSR)
+    .filter(row => Number.isFinite(row.position))
+    .filter(row => Number.isFinite(row.gapToLeaderSec))
+    .sort((a, b) => a.position - b.position);
+
+  let totalAdjacentGap = 0;
+  let adjacentGapCount = 0;
+
+  for (let i = 1; i < classifiedRows.length; i += 1) {
+    const prev = classifiedRows[i - 1];
+    const curr = classifiedRows[i];
+
+    if (
+      !Number.isFinite(prev.gapToLeaderSec) ||
+      !Number.isFinite(curr.gapToLeaderSec)
+    ) {
+      continue;
+    }
+
+    totalAdjacentGap += curr.gapToLeaderSec - prev.gapToLeaderSec;
+    adjacentGapCount += 1;
+  }
+
+  const srCount = rows.filter(row => row.isSR).length;
+  const srRate = rows.length ? srCount / rows.length : 0;
+  const positionSensitivity = adjacentGapCount
+    ? totalAdjacentGap / adjacentGapCount
+    : 0;
+
+  return {
+    classifiedRows,
+    srRate,
+    positionSensitivity,
+  };
+}
+
+function refreshRallyResultsSummary(items = null) {
+  const panel = insertResultsSummaryPanel();
+  if (!panel) return;
+
+  const rows = getVisibleParsedRallyRows(items);
+  if (!rows.length) {
+    panel.innerHTML = `
+      <div class="rsf-plugin-summary-item">
+        <span class="rsf-plugin-summary-label">Result</span>
+        <span class="rsf-plugin-summary-value">—</span>
+      </div>
+    `;
+    return;
+  }
+
+  const summary = summarizeRallyResults(rows);
+  const currentUser = findCurrentUserRallyResult(rows);
+
+  updateResultsSummaryPanel(panel, summary, currentUser);
 }
