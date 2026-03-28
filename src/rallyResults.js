@@ -99,8 +99,7 @@ function mountRallySubclassFilter(totalKm) {
 
   const subclasses = collectAvailableSubclasses(
     items,
-    selectedBaseGroupId,
-    {}
+    selectedBaseGroupId
   );
 
   if (subclasses.length < 2) {
@@ -198,6 +197,7 @@ function restoreRowValues(rowItem) {
 function applyRallySubclassFilter(items, selectedSubgroupId, totalKm) {
   recalculateRallyResultsTable(items, selectedSubgroupId, totalKm);
   refreshRallyResultsSummary(items);
+  applyZebraStriping(items);
 }
 
 function recalculateRallyResultsTable(items, selectedSubgroupId, totalKm) {
@@ -212,13 +212,12 @@ function recalculateRallyResultsTable(items, selectedSubgroupId, totalKm) {
   }
 
   if (!selectedSubgroupId) {
-    applyZebraStriping(items);
     return;
   }
 
   const ranked = items
     .filter((item) => item.visible)
-    .filter((item) => !item.isSR)
+    // .filter((item) => !item.position)
     .sort((a, b) => {
       const aValue = getAbsoluteValue(a);
       const bValue = getAbsoluteValue(b);
@@ -242,7 +241,6 @@ function recalculateRallyResultsTable(items, selectedSubgroupId, totalKm) {
     });
 
   if (!ranked.length) {
-    applyZebraStriping(items);
     return;
   }
 
@@ -302,8 +300,6 @@ function recalculateRallyResultsTable(items, selectedSubgroupId, totalKm) {
       setSecondsPerKmCell(spkmCell, spkm, { zeroAsDash: true });
     }
   }
-
-  applyZebraStriping(items);
 }
 
 async function fetchRallyTotalKm(rallyId) {
