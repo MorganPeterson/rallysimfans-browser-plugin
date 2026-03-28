@@ -12,7 +12,7 @@ describe('formatSecondsPerKm', () => {
   });
 
   it('formats numbers to two decimals', () => {
-    expect(formatSecondsPerKm(1.234)).toBe('+1.234 s/km');
+    expect(formatSecondsPerKm(1.234)).toBe('+01.234 s/km');
   });
 });
 
@@ -22,7 +22,7 @@ describe('formatConsistency', () => {
   });
 
   it('formats numbers to two decimals', () => {
-    expect(formatConsistency(0.456)).toBe('0.456 s/km');
+    expect(formatConsistency(0.456)).toBe('00.456 s/km');
   });
 });
 

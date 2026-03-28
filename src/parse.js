@@ -114,6 +114,10 @@ export function parseStageResultsTable(table) {
   return parseResultsTable(table, parseStageResultsRow);
 }
 
+export function parseRallyResultsTable(table) {
+  return parseResultsTable(table, parseRallyResultsRow);
+}
+
 export function isDashValue(text) {
   return /^[-—\s]+$/.test(String(text ?? '').trim());
 }
@@ -175,6 +179,62 @@ export function parseStageResultsRow(row) {
     gapToPrevSec,
     gapToLeaderSec,
     rowClassName: row.className || '',
+  };
+}
+
+export function parseRallyResultsRow(row) {
+  if (!row || !row.cells || row.cells.length < 7) return null;
+  if (row.classList.contains("fejlec2")) return null;
+
+  const cells = row.cells;
+
+  const posCell = row.querySelector(".rally_results_poz") || cells[0] || null;
+  const nameCell = cells[1].querySelectorAll('td a samp:nth-child(1)')?.[0] || cells[1] || null;
+  const carCell = row.querySelector(".rally_results_car") || cells[3] || null;
+  const timeCell = row.querySelector(".rally_results_time") || cells[4] || null;
+  const diffPrevCell = row.querySelector(".rally_results_diff_prev") || cells[5] || null;
+  const diffFirstCell = row.querySelector(".rally_results_diff_first") || cells[6] || null;
+  const numSRs = row.querySelector(".rally_results_sr") || cells[7] || null;
+  const isCurrentUser = row.classList.contains("lista_kiemelt2");
+
+  if (!posCell || !nameCell || !carCell || !timeCell || !diffPrevCell || !diffFirstCell || !numSRs) {
+    return null;
+  }
+
+
+  const position = parseIntegerStrict(normalizeText(posCell.textContent));
+  const isSR = parseIntegerStrict(numSRs.textContent) != null;
+
+  const carName = normalizeText(carCell.textContent);
+  const carDetails = carName ? getCarByName(carName) : null;
+  
+  const rawTimeText =
+    timeCell.querySelector("b")?.textContent ??
+    timeCell.textContent ??
+    "";
+
+  let gapToPrevSec = parseDiffToSeconds(diffPrevCell.textContent);
+  let gapToLeaderSec = parseDiffToSeconds(diffFirstCell.textContent);
+
+  const isLeader = position === 1;
+  if (isLeader) {
+    if (isDashValue(diffPrevCell.textContent) || normalizeText(diffPrevCell.textContent) === "00.000") {
+      gapToPrevSec = 0;
+    }
+    if (isDashValue(diffFirstCell.textContent) || normalizeText(diffFirstCell.textContent) === "00.000") {
+      gapToLeaderSec = 0;
+    }
+  }
+
+  return {
+    row,
+    position,
+    isSR,
+    isCurrentUser,
+    carDetails,
+    rallyTimeSec: parseTimeToSeconds(rawTimeText),
+    gapToPrevSec,
+    gapToLeaderSec,
   };
 }
 

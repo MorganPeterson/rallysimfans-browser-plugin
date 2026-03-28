@@ -24,7 +24,7 @@ export function getCarByName(carName) {
   };
 }
 
-const BASE_GROUP_ID_TO_CLASS_NAME = new Map([
+export const BASE_GROUP_ID_TO_CLASS_NAME = new Map([
   [10, "WRC 1.6"],
   [11, "WRC 2.0"],
   [21, "Group 2"],

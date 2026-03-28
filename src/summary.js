@@ -102,7 +102,7 @@ function renderCurrentUserSection(row) {
   return `
     ${renderSummaryMetric({
       label: 'Position',
-      value: row ? (row.isSR ? 'SR' : (row.position !== null ? String(row.position) : '—')) : '—',
+      value: row ? (row.position !== null && row.position !== undefined ? String(row.position) : (row.isSR ? 'SR' : '—')) : '—',
       tooltip: 'Your finishing position on this stage.'
     })}
     ${renderSummaryMetric({
@@ -237,6 +237,7 @@ function renderGapComparisonSection(classifiedRows) {
   }
 
   const options = classifiedRows
+    .filter(row => row.position !== null && row.position !== undefined)
     .map(row => `<option value="${row.position}">P${row.position}</option>`)
     .join('');
 
