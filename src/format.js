@@ -71,7 +71,7 @@ export function formatTime(totalSeconds) {
   const milliseconds = totalMs % 1000;
 
   const mm = String(minutes); // <-- no padding, can exceed 60
-  const ss = String(seconds);
+  const ss = String(seconds).padStart(2, "0");
   const mmm = String(milliseconds).padStart(3, "0");
 
   if (minutes === 0) {

@@ -134,6 +134,49 @@ export function summarizeStageResults(rows) {
   };
 }
 
+export function summarizeRallyResults(rows) {
+  if (!Array.isArray(rows) || rows.length === 0) {
+    return {
+      classifiedRows: [],
+      srRate: 0,
+      positionSensitivity: 0,
+    };
+  }
+
+  const totalDrivers = rows.length;
+  const srCount = rows.filter(row => row?.isSR).length;
+
+  const classifiedRows = rows.sort((a, b) => a.position - b.position);
+
+  let positionSensitivity = null;
+
+
+  let sum = [];
+  let count = 0;
+
+  for (let i = 1; i < classifiedRows.length; i += 1) {
+    const prev = classifiedRows[i - 1].gapToLeaderSec;
+    const curr = classifiedRows[i].gapToLeaderSec;
+    const gap = curr - prev;
+
+    if (Number.isFinite(gap)) {
+      sum.push(gap);
+      count++;
+    }
+  }
+  
+  positionSensitivity = count > 0 ? calculateMedian(sum) : null;
+
+  return {
+    totalDrivers,
+    srCount,
+    srRate: totalDrivers > 0 ? srCount / totalDrivers : null,
+    classifiedCount: totalDrivers,
+    positionSensitivity,
+    classifiedRows,
+  };
+}
+
 export function getGapBetweenPositions(rows, from, to) {
   const fromRow = rows.find(row => row.position === from);
   const toRow = rows.find(row => row.position === to);

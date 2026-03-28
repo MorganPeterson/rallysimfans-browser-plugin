@@ -16,23 +16,13 @@ import {
   createSubclassFilterBar,
   getAbsoluteValue,
 } from "./subclassFilterShared.js";
-
-function findContainingCell(element) {
-  return element ? element.closest('td') : null;
-}
-
-function getVisibleParsedStageRowsFromItems(items) {
-  return items
-    .filter(item => item.visible)
-    .map(item => parseStageResultsRow(item.row))
-    .filter(Boolean);
-}
+import { findCurrentUserResult, getVisibleParsedRowsFromItems } from "./results.js";
 
 function refreshStageResultsSummary(leftItems = null) {
   const stageTable = findStageResultsDataTable();
   if (!stageTable) return;
 
-  const stageCell = findContainingCell(stageTable);
+  const stageCell = stageTable ? stageTable.closest('td') : null;
   const stagePanel = insertResultsSummaryPanel(
     stageCell,
     'rsf-plugin-stage-results-summary'
@@ -41,7 +31,7 @@ function refreshStageResultsSummary(leftItems = null) {
   if (!stagePanel) return;
 
   const stageRows = Array.isArray(leftItems) && leftItems.length
-    ? getVisibleParsedStageRowsFromItems(leftItems)
+    ? getVisibleParsedRowsFromItems(leftItems, parseStageResultsRow)
     : parseStageResultsTable(stageTable);
 
   if (!stageRows.length) {
@@ -62,13 +52,9 @@ function refreshStageResultsSummary(leftItems = null) {
   }
 
   const stageSummary = summarizeStageResults(stageRows);
-  const currentUser = findCurrentUserStageResult(stageRows);
+  const currentUser = findCurrentUserResult(stageRows);
 
   updateResultsSummaryStagePanel(stagePanel, stageSummary, currentUser);
-}
-
-function findCurrentUserStageResult(rows) {
-  return rows.find(row => row.isCurrentUser) || null;
 }
 
 function isStageResultsDataRow(row) {

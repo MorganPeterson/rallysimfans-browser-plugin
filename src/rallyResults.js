@@ -5,12 +5,10 @@ import {
 } from "./secondsPerKmColumn.js";
 import {
   parseDiffToSeconds,
-  parseTimeToSeconds,
   normalizeText,
-  isDashValue,
-  parseIntegerStrict,
+  parseRallyResultsRow,
+  parseRallyResultsTable,
 } from "./parse.js";
-import { getCarByName } from "./cars.js";
 import {
   formatTime,
   setSecondsPerKmCell,
@@ -21,18 +19,13 @@ import {
     createSubclassFilterBar,
 } from "./subclassFilterShared.js";
 import { insertResultsSummaryPanel, updateResultsSummaryResultsPanel } from "./summary.js";
-
-const RALLY_RESULTS_TOOLTIPS = {
-  positionSensitivity: "Average gap between adjacent classified finishers in the visible rally results.",
-  srRate: "Percentage of visible drivers marked SR in the rally results.",
-};
+import { findCurrentUserResult, getVisibleParsedRowsFromItems } from "./results.js";
+import { findFirstMatchingTable, tableHasMatchingRow } from "./tableDetection.js";
+import { summarizeRallyResults } from "./stats.js";
 
 function getVisibleParsedRallyRows(items = null) {
   if (Array.isArray(items) && items.length) {
-    return items
-      .filter(item => item.visible)
-      .map(item => parseRallyResultsRow(item.row))
-      .filter(Boolean);
+    return getVisibleParsedRowsFromItems(items, parseRallyResultsRow);
   }
 
   return getRallyResultsRows()
@@ -162,66 +155,6 @@ function getRallyResultsRows() {
   }
 
   return items;
-}
-
-function parseRallyResultsRow(row) {
-  if (!row || !row.cells || row.cells.length < 7) return null;
-  if (row.classList.contains("fejlec2")) return null;
-
-  const cells = row.cells;
-
-  const posCell = row.querySelector(".rally_results_poz") || cells[0] || null;
-  const nameCell = cells[1] || null;
-  const carCell = row.querySelector(".rally_results_car") || cells[3] || null;
-  const timeCell = row.querySelector(".rally_results_time") || cells[4] || null;
-  const diffPrevCell = row.querySelector(".rally_results_diff_prev") || cells[5] || null;
-  const diffFirstCell = row.querySelector(".rally_results_diff_first") || cells[6] || null;
-  const isCurrentUser = row.classList.contains("lista_kiemelt2");
-  const numSRs = row.querySelector(".rally_results_sr") || cells[8] || null;
-
-  if (!posCell || !nameCell || !carCell || !timeCell || !diffPrevCell || !diffFirstCell) {
-    return null;
-  }
-
-  const posText = normalizeText(posCell.textContent).toUpperCase();
-  const isSR = parseIntegerStrict(numSRs.textContent) != null;
-
-  if (!/^\d+$/.test(posText) && !isSR) {
-    return null;
-  }
-
-  const position = isSR ? null : Number(posText);
-  const carName = normalizeText(carCell.textContent);
-  const carDetails = carName ? getCarByName(carName) : null;
-
-  let gapToPrevSec = parseDiffToSeconds(diffPrevCell.textContent);
-  let gapToLeaderSec = parseDiffToSeconds(diffFirstCell.textContent);
-
-  const isLeader = position === 1 && !isSR;
-  if (isLeader) {
-    if (isDashValue(diffPrevCell.textContent) || normalizeText(diffPrevCell.textContent) === "00.000") {
-      gapToPrevSec = 0;
-    }
-    if (isDashValue(diffFirstCell.textContent) || normalizeText(diffFirstCell.textContent) === "00.000") {
-      gapToLeaderSec = 0;
-    }
-  }
-
-  const rawTimeText =
-    timeCell.querySelector("b")?.textContent ??
-    timeCell.textContent ??
-    "";
-
-  return {
-    row,
-    position,
-    isSR,
-    isCurrentUser,
-    carDetails,
-    rallyTimeSec: parseTimeToSeconds(rawTimeText),
-    gapToPrevSec,
-    gapToLeaderSec,
-  };
 }
 
 function cacheOriginalValues(items) {
@@ -373,7 +306,10 @@ function recalculateRallyResultsTable(items, selectedSubgroupId, totalKm) {
   applyZebraStriping(items);
 }
 
-async function fetchRallyTotalKm() {
+async function fetchRallyTotalKm(rallyId) {
+  const value = localStorage.getItem(`rallyDistance${rallyId}`);
+  if (value !== null) return Number(value);
+
   const descParams = new URLSearchParams(window.location.search);
   descParams.set("centerbox", "rally_list_details.php");
 
@@ -384,7 +320,9 @@ async function fetchRallyTotalKm() {
     if (!resp.ok) return null;
 
     const html = await resp.text();
-    return extractTotalKmFromHtml(html);
+    const kms = extractTotalKmFromHtml(html);
+    localStorage.setItem(`rallyDistance${rallyId}`, String(kms));
+    return kms;
   } catch (_) {
     return null;
   }
@@ -403,65 +341,59 @@ function extractTotalKmFromHtml(html) {
   return Number.isFinite(km) ? km : null;
 }
 
-function findCurrentUserRallyResult(rows) {
-  return rows.find(row => row.isCurrentUser) || null;
+function isResultsDataRow(row) {
+  const posCell = row.querySelector(".rally_results_poz");
+
+  if (!posCell) return false;
+
+  const posText = normalizeText(posCell.textContent);
+  return /^\d+$/.test(posText);
 }
 
-function summarizeRallyResults(rows) {
-  const classifiedRows = rows
-    .filter(row => !row.isSR)
-    .filter(row => Number.isFinite(row.position))
-    .filter(row => Number.isFinite(row.gapToLeaderSec))
-    .sort((a, b) => a.position - b.position);
+function findRallyResultsDataTable() {
+  const found = findFirstMatchingTable({
+    selector: "table.rally_results",
+    includeTfoot: false,
+    match: ({ rows }) => tableHasMatchingRow(rows, isResultsDataRow),
+  });
 
-  let totalAdjacentGap = 0;
-  let adjacentGapCount = 0;
-
-  for (let i = 1; i < classifiedRows.length; i += 1) {
-    const prev = classifiedRows[i - 1];
-    const curr = classifiedRows[i];
-
-    if (
-      !Number.isFinite(prev.gapToLeaderSec) ||
-      !Number.isFinite(curr.gapToLeaderSec)
-    ) {
-      continue;
-    }
-
-    totalAdjacentGap += curr.gapToLeaderSec - prev.gapToLeaderSec;
-    adjacentGapCount += 1;
-  }
-
-  const srCount = rows.filter(row => row.isSR).length;
-  const srRate = rows.length ? srCount / rows.length : 0;
-  const positionSensitivity = adjacentGapCount
-    ? totalAdjacentGap / adjacentGapCount
-    : 0;
-
-  return {
-    classifiedRows,
-    srRate,
-    positionSensitivity,
-  };
+  return found?.table ?? null;
 }
 
 function refreshRallyResultsSummary(items = null) {
-  const panel = insertResultsSummaryPanel();
-  if (!panel) return;
+  const resultsTable = findRallyResultsDataTable();
+  if (!resultsTable) return;
 
-  const rows = getVisibleParsedRallyRows(items);
-  if (!rows.length) {
-    panel.innerHTML = `
-      <div class="rsf-plugin-summary-item">
-        <span class="rsf-plugin-summary-label">Result</span>
-        <span class="rsf-plugin-summary-value">—</span>
+  const containerCell = resultsTable ? resultsTable.closest('td') : null;
+  const resultsPanel = insertResultsSummaryPanel(
+    containerCell,
+    'rsf-plugin-summary'
+  );
+  if (!resultsPanel) return;
+
+  const resultsRows = Array.isArray(items) && items.length
+    ? getVisibleParsedRallyRows(items)
+    : parseRallyResultsTable(resultsTable);
+
+  if (!resultsRows.length) {
+    resultsPanel.innerHTML = `
+      <div class="rsf-plugin-summary-layout">
+        <div class="rsf-plugin-summary-main">
+          <div class="rsf-plugin-summary-user">
+            <div class="rsf-plugin-summary-title">Summary</div>
+            <div class="rsf-plugin-summary-item">
+              <span class="rsf-plugin-summary-label">Result</span>
+              <span class="rsf-plugin-summary-value">—</span>
+            </div>
+          </div>
+        </div>
       </div>
     `;
     return;
   }
 
-  const summary = summarizeRallyResults(rows);
-  const currentUser = findCurrentUserRallyResult(rows);
+  const summary = summarizeRallyResults(resultsRows);
+  const currentUser = findCurrentUserResult(resultsRows);
 
-  updateResultsSummaryResultsPanel(panel, summary, currentUser);
+  updateResultsSummaryResultsPanel(resultsPanel, summary, currentUser);
 }
