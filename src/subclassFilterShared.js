@@ -34,11 +34,11 @@ export function getAbsoluteValue(item) {
 }
 
 export function createSubclassFilterBar(subclasses) {
-  bar = document.createElement('div');
+  const bar = document.createElement('div');
   bar.className = 'rsf-plugin-subclass-bar';
   bar.innerHTML = `
     <button type="button" class="rsf-plugin-subclass-btn is-active" data-subgroup="">
-      All subclasses
+      All Cars
     </button>
     ${subclasses
       .map(
