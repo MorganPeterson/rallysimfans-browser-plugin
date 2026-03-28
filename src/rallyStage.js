@@ -17,6 +17,7 @@ import {
   getAbsoluteValue,
 } from "./subclassFilterShared.js";
 import { findCurrentUserResult, getVisibleParsedRowsFromItems } from "./results.js";
+import { BASE_GROUP_ID_TO_CLASS_NAME } from "./cars.js";
 
 function refreshStageResultsSummary(leftItems = null) {
   const stageTable = findStageResultsDataTable();
@@ -268,6 +269,7 @@ export function mountSubclassFilter() {
   cacheOriginalValues(leftItems);
   cacheOriginalValues(rightItems);
 
+  const baseClass = BASE_GROUP_ID_TO_CLASS_NAME.get(selectedBaseGroupId);
   const subclasses = collectAvailableSubclasses(
     [...leftItems, ...rightItems],
     selectedBaseGroupId,
@@ -285,7 +287,7 @@ export function mountSubclassFilter() {
   let bar = document.querySelector('.rsf-plugin-subclass-bar');
   if (bar) bar.remove();
 
-  bar = createSubclassFilterBar(subclasses);
+  bar = createSubclassFilterBar(baseClass, subclasses);
 
   bar.addEventListener('click', event => {
     const btn = event.target.closest('button[data-subgroup]');

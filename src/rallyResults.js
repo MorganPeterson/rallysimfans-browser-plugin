@@ -22,6 +22,7 @@ import { insertResultsSummaryPanel, updateResultsSummaryResultsPanel } from "./s
 import { findCurrentUserResult, getVisibleParsedRowsFromItems } from "./results.js";
 import { findFirstMatchingTable, tableHasMatchingRow } from "./tableDetection.js";
 import { summarizeRallyResults } from "./stats.js";
+import { BASE_GROUP_ID_TO_CLASS_NAME } from "./cars.js";
 
 function getVisibleParsedRallyRows(items = null) {
   if (Array.isArray(items) && items.length) {
@@ -97,6 +98,7 @@ function mountRallySubclassFilter(totalKm) {
 
   cacheOriginalValues(items);
 
+  const baseClass = BASE_GROUP_ID_TO_CLASS_NAME.get(selectedBaseGroupId);
   const subclasses = collectAvailableSubclasses(
     items,
     selectedBaseGroupId
@@ -114,7 +116,7 @@ function mountRallySubclassFilter(totalKm) {
   let bar = document.querySelector('.rsf-plugin-subclass-bar');
   if (bar) bar.remove();
 
-  bar = createSubclassFilterBar(subclasses);
+  bar = createSubclassFilterBar(baseClass, subclasses);
 
   bar.addEventListener('click', event => {
     const btn = event.target.closest('button[data-subgroup]');
