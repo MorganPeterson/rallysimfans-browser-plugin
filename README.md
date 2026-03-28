@@ -1,9 +1,6 @@
 # rallysimfans-browser-plugin
 Browser extension for [rallysimfans.hu](https://www.rallysimfans.hu/rbr/index.php) website that enhances it with stats and filters.
 
-**Note:** This extension does NOT make server calls to RSF or anywhere else. It works
-only on the data that is rendered in the browser.
-
 This is a fork of [rallysimfans-browser-plugin](https://github.com/AnttiLoponen/rallysimfans-browser-plugin)
 
 ## Features
