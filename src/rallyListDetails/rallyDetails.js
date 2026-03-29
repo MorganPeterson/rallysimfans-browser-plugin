@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon';
-import { findFirstMatchingTable, tableHasMatchingRow } from './tableDetection.js';
+import { findFirstMatchingTable, tableHasMatchingRow } from '../core/tableDetection.js';
 
 const BUDAPEST_TZ = 'Europe/Budapest';
 

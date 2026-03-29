@@ -1,6 +1,10 @@
 import { getCarByName } from "./cars.js"
 
-// Convert "MM:SS.mmm" or "H:MM:SS.mmm" to total seconds. Returns null on failure.
+/** 
+ * Convert "MM:SS.mmm" or "H:MM:SS.mmm" to total seconds. Returns null on failure.
+ * @param {string} timeStr - The time string to parse.
+ * @returns {number|null} The total time in seconds, or null if parsing fails.
+ */
 export function parseTimeToSeconds(timeStr) {
     if (typeof timeStr !== 'string') return null;
 
@@ -69,20 +73,6 @@ export function parseDiffToSeconds(str) {
   }
 
   return parseTimeToSeconds(normalized);
-}
-
-// Extract km from "13.4 km", "9,7 km", etc.
-export function parseKm(lenStr) {
-    if (typeof lenStr !== 'string') return null;
-
-    const s = lenStr.trim();
-    if (!s) return null;
-
-    const match = s.match(/^(\d+(?:[.,]\d+)?)\s*km$/i);
-    if (!match) return null;
-
-    const km = Number(match[1].replace(',', '.'));
-    return Number.isFinite(km) ? km : null;
 }
 
 function parseResultsTable(table, rowParser) {

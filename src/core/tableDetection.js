@@ -5,16 +5,18 @@ import {
   defaultNormalize,
 } from './domTable.js';
 
-function getCandidateTables(selector = 'table') {
-  return Array.from(document.querySelectorAll(selector));
-}
-
 function inspectTable(table, options = {}) {
   const { includeTfoot = true } = options;
   const rows = getDirectTableRows(table, { includeTfoot });
   return { table, rows };
 }
 
+/**
+ * findFirstMatchingTable iterates over tables matching the selector and returns 
+ * the first one for which the match function returns true.
+ * @param {{selector?: string, includeTfoot?: boolean, match: function}} options 
+ * @returns {{table: HTMLTableElement, rows: HTMLTableRowElement[]}|null}
+ */
 export function findFirstMatchingTable(options = {}) {
   const {
     selector = 'table',
@@ -26,7 +28,7 @@ export function findFirstMatchingTable(options = {}) {
     throw new Error('findFirstMatchingTable requires a match function');
   }
 
-  const tables = getCandidateTables(selector);
+  const tables = Array.from(document.querySelectorAll(selector));
 
   for (const table of tables) {
     const ctx = inspectTable(table, { includeTfoot });
@@ -50,7 +52,7 @@ export function findBestMatchingTable(options = {}) {
     throw new Error('findBestMatchingTable requires a score function');
   }
 
-  const tables = getCandidateTables(selector);
+  const tables = Array.from(document.querySelectorAll(selector));
 
   let best = null;
   let bestScore = -Infinity;

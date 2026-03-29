@@ -4,7 +4,7 @@ import {
   formatConsistency,
   getSecondsPerKmClass,
   getConsistencyClass,
-} from '../src/format.js';
+} from '../src/core/format.js';
 
 describe('formatSecondsPerKm', () => {
   it('formats null as dash', () => {

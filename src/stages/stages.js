@@ -1,9 +1,9 @@
-import { getDirectCells } from './domTable.js';
+import { getDirectCells } from '../core/domTable.js';
 import {
   findFirstMatchingTable,
   findHeaderRow,
   findColumnIndexByHeaderText,
-} from './tableDetection.js';
+} from '../core/tableDetection.js';
 
 const SURFACES = ['gravel', 'tarmac', 'snow'];
 

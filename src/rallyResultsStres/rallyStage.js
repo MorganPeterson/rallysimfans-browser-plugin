@@ -2,22 +2,24 @@ import {
     parseStageResultsTable,
     parseStageResultsRow,
     normalizeText,
-} from "./parse.js";
-import { summarizeStageResults } from "./stats.js";
-import { formatTime } from "./format.js";
+} from "../core/parse.js";
+import { summarizeStageResults } from "../core/stats.js";
+import { formatTime, formatSeconds } from "../core/format.js";
 import {
   insertResultsSummaryPanel,
-  updateResultsSummaryStagePanel,
-} from "./summary.js";
-import { findFirstMatchingTable, tableHasMatchingRow } from "./tableDetection.js";
-import { applyZebraStriping } from "./domTable.js";
+  renderCurrentUserSection,
+  updateResultsSummaryPanel,
+} from "../core/summary.js";
+import { findFirstMatchingTable, tableHasMatchingRow } from "../core/tableDetection.js";
+import { applyZebraStriping } from "../core/domTable.js";
 import {
   collectAvailableSubclasses,
   createSubclassFilterBar,
   getAbsoluteValue,
-} from "./subclassFilterShared.js";
-import { findCurrentUserResult, getVisibleParsedRowsFromItems } from "./results.js";
-import { BASE_GROUP_ID_TO_CLASS_NAME } from "./cars.js";
+} from "../core/subclassFilterShared.js";
+import { findCurrentUserResult, getVisibleParsedRowsFromItems } from "../core/results.js";
+import { BASE_GROUP_ID_TO_CLASS_NAME } from "../core/cars.js";
+import { renderSummaryMetric } from "../core/summaryMetric.js";
 
 function refreshStageResultsSummary(leftItems = null) {
   const stageTable = findStageResultsDataTable();
@@ -55,7 +57,18 @@ function refreshStageResultsSummary(leftItems = null) {
   const stageSummary = summarizeStageResults(stageRows);
   const currentUser = findCurrentUserResult(stageRows);
 
-  updateResultsSummaryStagePanel(stagePanel, stageSummary, currentUser);
+  updateResultsSummaryPanel(stagePanel, stageSummary, currentUser, renderCurrentUserStageSection);
+}
+
+function renderCurrentUserStageSection(row) {
+  return `
+    ${renderCurrentUserSection(row)}
+    ${renderSummaryMetric({
+      label: 'Stage Time',
+      value: row ? `${formatSeconds(row.stageTimeSec)}` : '—',
+      tooltip: 'Your recorded stage time.'
+    })}
+  `;
 }
 
 function isStageResultsDataRow(row) {

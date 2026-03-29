@@ -4,7 +4,7 @@ import {
   getDirectCells,
   defaultNormalize,
   getCellTexts,
-} from '../src/domTable.js';
+} from '../src/core/domTable.js';
 
 describe('domTable', () => {
   beforeEach(() => {

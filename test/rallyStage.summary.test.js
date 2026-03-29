@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { addStageResultsSummary } from '../src/rallyStage.js';
+import { addStageResultsSummary } from '../src/rallyResultsStres/rallyStage.js';
 
 describe('rallyStage summary gap comparison', () => {
   beforeEach(() => {

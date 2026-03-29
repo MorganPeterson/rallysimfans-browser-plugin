@@ -1,4 +1,4 @@
-import { findBestMatchingTable } from './tableDetection.js';
+import { findBestMatchingTable } from '../core/tableDetection.js';
 
 export function addRallySearchFilter() {
   const found = findRallyListTable();

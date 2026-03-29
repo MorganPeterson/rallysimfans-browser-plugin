@@ -1,44 +1,22 @@
-import { summarizeStageStats } from './stats.js';
 import {
   formatSeconds,
   formatPercent,
-  formatSecondsPerKm,
-  formatConsistency,
-  getSecondsPerKmClass,
-  getConsistencyClass,
 } from './format.js';
 import { renderSummaryMetric } from './summaryMetric.js';
 import { getGapBetweenPositions } from "./stats.js";
-
-const SUMMARY_TOOLTIPS = {
-  average: 'Average seconds per kilometer slower than the world record across visible driven stages.',
-  median: 'The middle s/km value across visible driven stages. This represents your typical pace and is less affected by one very bad stage.',
-  consistency: 'Average minus median. Lower is better. A larger value usually means one or more bad stages hurt your rally.',
-  best: 'Your best visible stage pace in seconds per kilometer slower than the world record.',
-  worst: 'Your worst visible stage pace in seconds per kilometer slower than the world record.',
-  drivenCount: 'Number of visible stages with both a personal record and a world record time.',
-  undrivenCount: 'Number of visible stages that have a world record but no personal record.',
-  totalCount: 'Total number of visible stages included in this summary.',
-};
 
 const RESULTS_TOOLTIPS = {
   positionSensitivity: 'Average gap between adjacent classified finishers. Lower means a tighter field.',
   srRate: 'Percentage of drivers marked SR in this stage’s results table.',
 };
 
-export function insertStageStatsPanel(table) {
-  let panel = table.previousElementSibling;
-  if (panel && panel.classList.contains('rsf-plugin-summary')) {
-    return panel;
-  }
-
-  panel = document.createElement('div');
-  panel.className = 'rsf-plugin-summary';
-  table.insertAdjacentElement('beforebegin', panel);
-
-  return panel;
-}
-
+/**
+ * Inserts a summary panel into the results page. It first tries to insert into 
+ * the sticky header if it exists, otherwise it falls back to inserting into the provided container cell.
+ * @param {HTMLElement} containerCell 
+ * @param {string} className 
+ * @returns {HTMLElement|null}
+ */
 export function insertResultsSummaryPanel(containerCell, className) {
   const stickyHeader = document.querySelector('.rally_results_header_sticky');
 
@@ -98,7 +76,12 @@ export function insertResultsSummaryPanel(containerCell, className) {
   return panel;
 }
 
-function renderCurrentUserSection(row) {
+/**
+ * Renders the current user's summary section for a stage results summary panel.
+ * @param {{position: number|null, isSR: boolean, gapToLeaderSec: number, gapToPrevSec: number}} row 
+ * @returns {string}
+ */
+export function renderCurrentUserSection(row) {
   return `
     ${renderSummaryMetric({
       label: 'Position',
@@ -118,83 +101,48 @@ function renderCurrentUserSection(row) {
     `;
 }
 
-function renderCurrentUserResultsSection(row) {
-  return `
-    ${renderCurrentUserSection(row)}
-    ${renderSummaryMetric({
-      label: 'Finish Time',
-      value: row ? `${formatSeconds(row.rallyTimeSec)}` : '—',
-      tooltip: 'Your recorded stage time.'
-    })}
-  `;
-}
-
-function renderCurrentUserStageSection(row) {
-  return `
-    ${renderCurrentUserSection(row)}
-    ${renderSummaryMetric({
-      label: 'Stage Time',
-      value: row ? `${formatSeconds(row.stageTimeSec)}` : '—',
-      tooltip: 'Your recorded stage time.'
-    })}
-  `;
-}
-
-export function updateStageStatsPanel(panel, stats) {
-  const summary = summarizeStageStats(stats);
-
+/**
+ * if the stage results table is present, extracts the stage results data, 
+ * computes summary statistics, and updates the summary panel.
+ * @param {HTMLElement} panel 
+ * @param {{positionSensitivity: number, srRate: number, classifiedRows: Array<Object>}} summary 
+ * @param {{position: number|null, isSR: boolean, gapToLeaderSec: number, gapToPrevSec: number}} currentUser 
+ * @param {Function} renderUser 
+ */
+export function updateResultsSummaryPanel(panel, summary, currentUser, renderUser) {
   panel.innerHTML = `
+    <div class="rsf-plugin-stage-summary-layout">
+    <div class="rsf-plugin-stage-summary-main">
+    <div class="rsf-plugin-stage-summary-user">
+    <div class="rsf-plugin-summary-title">Summary</div>
+    ${renderUser(currentUser)}
     ${renderSummaryMetric({
-      label: 'Avg',
-      value: formatSecondsPerKm(summary.average),
-      valueClass: getSecondsPerKmClass(summary.average),
-      tooltip: SUMMARY_TOOLTIPS.average
+      label: 'Typical Gap',
+      value: `+${formatSeconds(summary.positionSensitivity)}`,
+      tooltip: RESULTS_TOOLTIPS.positionSensitivity
     })}
     ${renderSummaryMetric({
-      label: 'Median',
-      value: formatSecondsPerKm(summary.median),
-      valueClass: getSecondsPerKmClass(summary.median),
-      tooltip: SUMMARY_TOOLTIPS.median
+      label: 'SR Rate',
+      value: `${formatPercent(summary.srRate)}%`,
+      tooltip: RESULTS_TOOLTIPS.srRate
     })}
-    ${renderSummaryMetric({
-      label: 'Consistency',
-      value: formatConsistency(summary.consistency),
-      valueClass: getConsistencyClass(summary.consistency),
-      tooltip: SUMMARY_TOOLTIPS.consistency
-    })}
-    ${renderSummaryMetric({
-      label: 'Best',
-      value: formatSecondsPerKm(summary.best),
-      valueClass: getSecondsPerKmClass(summary.best),
-      tooltip: SUMMARY_TOOLTIPS.best
-    })}
-    ${renderSummaryMetric({
-      label: 'Worst',
-      value: formatSecondsPerKm(summary.worst),
-      valueClass: getSecondsPerKmClass(summary.worst),
-      tooltip: SUMMARY_TOOLTIPS.worst
-    })}
-    ${renderSummaryMetric({
-      label: 'Driven',
-      value: String(summary.drivenCount),
-      valueClass: '',
-      tooltip: SUMMARY_TOOLTIPS.drivenCount
-    })}
-    ${renderSummaryMetric({
-      label: 'Undriven',
-      value: String(summary.undrivenCount),
-      valueClass: '',
-      tooltip: SUMMARY_TOOLTIPS.undrivenCount
-    })}
-    ${renderSummaryMetric({
-      label: 'Total',
-      value: String(summary.totalCount),
-      valueClass: '',
-      tooltip: SUMMARY_TOOLTIPS.totalCount
-    })}
+    </div>
+    <div class="rsf-plugin-stage-summary-side">
+    ${renderGapComparisonSection(summary.classifiedRows)}
+    </div>
+    </div>
+    </div>
   `;
+
+  bindGapComparisonControls(panel, summary.classifiedRows);
 }
 
+/**
+ * Binds the gap comparison controls within the summary panel.
+ * @param {HTMLElement} panel 
+ * @param {Array<{position: number|null}>} classifiedRows 
+ * @returns {void}
+ */
 function bindGapComparisonControls(panel, classifiedRows) {
   const fromSelect = panel.querySelector('.rsf-plugin-gap-from');
   const toSelect = panel.querySelector('.rsf-plugin-gap-to');
@@ -226,6 +174,11 @@ function bindGapComparisonControls(panel, classifiedRows) {
   updateGap();
 }
 
+/**
+ * Renders the gap comparison section of the summary panel, which allows users to select two positions and see the gap between them.
+ * @param {Array<{position: number|null}>} classifiedRows 
+ * @returns {string}
+ */
 function renderGapComparisonSection(classifiedRows) {
   if (!classifiedRows.length) {
     return `
@@ -264,40 +217,4 @@ function renderGapComparisonSection(classifiedRows) {
       </div>
     </div>
   `;
-}
-
-export function updateResultsSummaryStagePanel(panel, summary, currentUser) {
-  return updateResultsSummaryPanel(panel, summary, currentUser, renderCurrentUserStageSection)
-}
-
-export function updateResultsSummaryResultsPanel(panel, summary, currentUser) {
-  return updateResultsSummaryPanel(panel, summary, currentUser, renderCurrentUserResultsSection)
-}
-
-function updateResultsSummaryPanel(panel, summary, currentUser, renderUser) {
-  panel.innerHTML = `
-    <div class="rsf-plugin-stage-summary-layout">
-    <div class="rsf-plugin-stage-summary-main">
-    <div class="rsf-plugin-stage-summary-user">
-    <div class="rsf-plugin-summary-title">Summary</div>
-    ${renderUser(currentUser)}
-    ${renderSummaryMetric({
-      label: 'Typical Gap',
-      value: `+${formatSeconds(summary.positionSensitivity)}`,
-      tooltip: RESULTS_TOOLTIPS.positionSensitivity
-    })}
-    ${renderSummaryMetric({
-      label: 'SR Rate',
-      value: `${formatPercent(summary.srRate)}%`,
-      tooltip: RESULTS_TOOLTIPS.srRate
-    })}
-    </div>
-    <div class="rsf-plugin-stage-summary-side">
-    ${renderGapComparisonSection(summary.classifiedRows)}
-    </div>
-    </div>
-    </div>
-  `;
-
-  bindGapComparisonControls(panel, summary.classifiedRows);
 }
