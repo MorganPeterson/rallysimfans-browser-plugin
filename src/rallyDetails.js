@@ -61,6 +61,12 @@ export function formatLocalDateTimeRange(
   return `${localStart.toFormat('yyyy-MM-dd HH:mm')} - ${localEnd.toFormat('yyyy-MM-dd HH:mm')}`;
 }
 
+/**
+ * Parses the leg range from the given text, using cache if available.
+ * @param {string} rallyId
+ * @param {string} text
+ * @returns {{start: DateTime, end: DateTime}|null}
+ */
 export function parseLegRange(rallyId, text) {
   const cached = rsfCache.get(`rally:${rallyId}:localTimes`);
   if (cached && cached.start && cached.end) {

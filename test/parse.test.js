@@ -290,7 +290,7 @@ describe('parseStageResultsTable', () => {
     expect(rows).toHaveLength(2);
     expect(rows[0].position).toBe(1);
     expect(rows[0].isSR).toBe(false);
-    expect(rows[1].position).toBeNull();
+    expect(rows[1].position).toBe(2);
     expect(rows[1].isSR).toBe(true);
   });
 });
