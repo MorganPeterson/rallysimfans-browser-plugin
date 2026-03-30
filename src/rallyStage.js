@@ -56,6 +56,10 @@ function refreshStageResultsSummary(leftItems = null) {
   const stageSummary = summarizeStageResults(stageRows);
   const currentUser = stageRows.find(row => row.isCurrentUser) || null;
 
+  if (currentUser?.isSR) {
+    currentUser.position = 'SR';
+  }
+
   updateResultsSummaryPanel(stagePanel, stageSummary, currentUser, renderCurrentUserStageSection);
 }
 
