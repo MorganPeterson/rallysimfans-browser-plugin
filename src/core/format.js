@@ -3,27 +3,6 @@ export function formatSeconds(value) {
   return `${formatDuration(value)}`;
 }
 
-export function formatPercent(value) {
-  if (value === null || !Number.isFinite(value)) return '—';
-  return `${(value * 100).toFixed(1)}`;
-}
-
-export function formatSecondsPerKm(spkm) {
-  const secs = formatSeconds(spkm);
-  if (secs === '—') {
-    return '—';
-  }
-  return `+${secs} s/km`;
-}
-
-export function formatConsistency(value) {
-  const secs = formatSeconds(value);
-  if (secs === '—') {
-    return '—';
-  }
-  return `${secs} s/km`;
-}
-
 function getDiffClass(value, thresholds = [1, 3, 6]) {
   if (value === null || !Number.isFinite(value)) return 'rsf-plugin-diff--na';
   if (value <= thresholds[0]) return 'rsf-plugin-diff--great';

@@ -1,3 +1,10 @@
+/**
+ * Collects available subclasses for a given base group from the provided items.
+ * @param {{carDetails: {base_class_id: number, sub_class_id: number, sub_class_name: string}}[]} items 
+ * @param {number} selectedBaseGroupId 
+ * @param {{[key: number]: string}} subgroupNames 
+ * @returns {{id: number, label: string}[]}
+ */
 export function collectAvailableSubclasses(items, selectedBaseGroupId, subgroupNames = {}) {
   const subgroupMap = new Map();
 
@@ -21,6 +28,11 @@ export function collectAvailableSubclasses(items, selectedBaseGroupId, subgroupN
   return [...subgroupMap.values()];
 }
 
+/**
+ * get the time used for sorting and gap calculations for a stage result item.
+ * @param {{rallyTimeSec: number, gapToLeaderSec: number}} item 
+ * @returns {number|null}
+ */
 export function getAbsoluteValue(item) {
   if (Number.isFinite(item.rallyTimeSec)) {
     return item.rallyTimeSec;
@@ -33,6 +45,12 @@ export function getAbsoluteValue(item) {
   return null;
 }
 
+/**
+ * Creates a subclass filter bar for a given base class and its subclasses.
+ * @param {string} baseClass 
+ * @param {{id: number, label: string}[]} subclasses 
+ * @returns {HTMLDivElement}
+ */
 export function createSubclassFilterBar(baseClass, subclasses) {
   const bar = document.createElement('div');
   bar.className = 'rsf-plugin-subclass-bar';

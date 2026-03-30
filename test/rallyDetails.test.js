@@ -1,9 +1,14 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import {
   parseBudapestDateTime,
   parseLegRange,
   formatLocalDateTimeRange,
 } from '../src/rallyDetails.js';
+import {rsfCache} from '../src/core/cache.js';
+
+beforeEach(() => {
+  rsfCache.clear();
+});
 
 describe('parseBudapestDateTime', () => {
   it('parses a valid Budapest datetime', () => {
@@ -23,7 +28,7 @@ describe('parseBudapestDateTime', () => {
 
 describe('parseLegRange', () => {
   it('parses a valid leg range', () => {
-    const range = parseLegRange('2026-03-12 23:59 - 2026-03-19 23:59');
+    const range = parseLegRange('1234', '2026-03-12 23:59 - 2026-03-19 23:59');
 
     expect(range).not.toBeNull();
     expect(range.start.toFormat('yyyy-MM-dd HH:mm')).toBe('2026-03-12 23:59');
@@ -33,15 +38,15 @@ describe('parseLegRange', () => {
   });
 
   it('returns null for malformed ranges', () => {
-    expect(parseLegRange('2026-03-12 23:59')).toBeNull();
-    expect(parseLegRange('2026-03-12 23:59 to 2026-03-19 23:59')).toBeNull();
-    expect(parseLegRange('abc - def')).toBeNull();
+    expect(parseLegRange('1234', '2026-03-12 23:59')).toBeNull();
+    expect(parseLegRange('1234', '2026-03-12 23:59 to 2026-03-19 23:59')).toBeNull();
+    expect(parseLegRange('1234', 'abc - def')).toBeNull();
   });
 });
 
 describe('formatLocalDateTimeRange', () => {
   it('formats a Budapest range in Phoenix time', () => {
-    const range = parseLegRange('2026-03-12 23:59 - 2026-03-19 23:59');
+    const range = parseLegRange('1234', '2026-03-12 23:59 - 2026-03-19 23:59');
 
     const formatted = formatLocalDateTimeRange(
       range.start,
@@ -53,7 +58,7 @@ describe('formatLocalDateTimeRange', () => {
   });
 
   it('formats a Budapest range in UTC', () => {
-    const range = parseLegRange('2026-03-12 23:59 - 2026-03-19 23:59');
+    const range = parseLegRange('1234', '2026-03-12 23:59 - 2026-03-19 23:59');
 
     const formatted = formatLocalDateTimeRange(
       range.start,

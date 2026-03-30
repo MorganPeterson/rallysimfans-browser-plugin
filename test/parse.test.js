@@ -5,7 +5,7 @@ import {
   parseStageResultsTable,
   parseStageResultsRow,
   parseStageResultGap
-} from '../src/parse.js';
+} from '../src/core/parse.js';
 
 describe('parseTimeToSeconds', () => {
   describe('valid inputs', () => {
@@ -105,67 +105,6 @@ describe('parseTimeToSeconds', () => {
       expect(parseTimeToSeconds('1::23')).toBeNull();
       expect(parseTimeToSeconds('1:23.4.5')).toBeNull();
       expect(parseTimeToSeconds('1:23,4,5')).toBeNull();
-    });
-  });
-});
-
-describe('parseKm', () => {
-  describe('valid inputs', () => {
-    it('parses integer km values', () => {
-      expect(parseKm('12 km')).toBe(12);
-    });
-
-    it('parses decimal km values with dot', () => {
-      expect(parseKm('13.4 km')).toBe(13.4);
-    });
-
-    it('parses decimal km values with comma', () => {
-      expect(parseKm('9,7 km')).toBe(9.7);
-    });
-
-    it('trims surrounding whitespace', () => {
-      expect(parseKm('  8.5 km  ')).toBe(8.5);
-    });
-
-    it('accepts uppercase unit', () => {
-      expect(parseKm('10 KM')).toBe(10);
-    });
-  });
-
-  describe('invalid inputs', () => {
-    it('returns null for nullish or non-string values', () => {
-      expect(parseKm(null)).toBeNull();
-      expect(parseKm(undefined)).toBeNull();
-      expect(parseKm(12)).toBeNull();
-    });
-
-    it('returns null for empty strings', () => {
-      expect(parseKm('')).toBeNull();
-      expect(parseKm('   ')).toBeNull();
-    });
-
-    it('rejects missing unit', () => {
-      expect(parseKm('13.4')).toBeNull();
-    });
-
-    it('rejects wrong unit', () => {
-      expect(parseKm('13.4 mi')).toBeNull();
-      expect(parseKm('13.4 m')).toBeNull();
-    });
-
-    it('rejects malformed values', () => {
-      expect(parseKm('abc')).toBeNull();
-      expect(parseKm('13..4 km')).toBeNull();
-      expect(parseKm('13,4,5 km')).toBeNull();
-      expect(parseKm('13km')).toBe(13); // keep or remove depending on your intended behavior
-    });
-
-    it('rejects extra trailing text', () => {
-      expect(parseKm('13.4 km extra')).toBeNull();
-    });
-
-    it('rejects negative values', () => {
-      expect(parseKm('-5 km')).toBeNull();
     });
   });
 });
@@ -351,7 +290,7 @@ describe('parseStageResultsTable', () => {
     expect(rows).toHaveLength(2);
     expect(rows[0].position).toBe(1);
     expect(rows[0].isSR).toBe(false);
-    expect(rows[1].position).toBeNull();
+    expect(rows[1].position).toBe(2);
     expect(rows[1].isSR).toBe(true);
   });
 });

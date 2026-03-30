@@ -1,32 +1,32 @@
-import { applyZebraStriping, getDirectTableRows } from "./domTable.js";
-import {
-  appendSecondsPerKmDataCell,
-  appendSecondsPerKmHeader,
-} from "./secondsPerKmColumn.js";
+import { applyZebraStriping, getDirectTableRows } from "./core/domTable.js";
 import {
   parseDiffToSeconds,
   normalizeText,
   parseRallyResultsRow,
   parseRallyResultsTable,
-} from "./parse.js";
+} from "./core/parse.js";
 import {
   formatTime,
+  formatSeconds,
   setSecondsPerKmCell,
-} from "./format.js";
+} from "./core/format.js";
 import {
     collectAvailableSubclasses,
     getAbsoluteValue,
     createSubclassFilterBar,
-} from "./subclassFilterShared.js";
-import { insertResultsSummaryPanel, updateResultsSummaryResultsPanel } from "./summary.js";
-import { findCurrentUserResult, getVisibleParsedRowsFromItems } from "./results.js";
-import { findFirstMatchingTable, tableHasMatchingRow } from "./tableDetection.js";
-import { summarizeRallyResults } from "./stats.js";
-import { BASE_GROUP_ID_TO_CLASS_NAME } from "./cars.js";
+} from "./core/subclassFilterShared.js";
+import { insertResultsSummaryPanel, updateResultsSummaryPanel, renderCurrentUserSection } from "./core/summary.js";
+import { findFirstMatchingTable, tableHasMatchingRow } from "./core/tableDetection.js";
+import { summarizeRallyResults } from "./core/stats.js";
+import { BASE_GROUP_ID_TO_CLASS_NAME } from "./core/cars.js";
+import { renderSummaryMetric } from "./core/summary.js";
+import { rsfCache } from "./core/cache.js";
 
 function getVisibleParsedRallyRows(items = null) {
   if (Array.isArray(items) && items.length) {
-    return getVisibleParsedRowsFromItems(items, parseRallyResultsRow);
+    return items.filter(item => item.visible)
+      .map(item => parseRallyResultsRow(item.row))
+      .filter(Boolean);
   }
 
   return getRallyResultsRows()
@@ -35,8 +35,14 @@ function getVisibleParsedRallyRows(items = null) {
     .filter(Boolean);
 }
 
-export async function addRallyResultsDiff() {
-  const totalKm = await fetchRallyTotalKm();
+/**
+ * Adds the s/km column to the rally results table, summary panel, and subclass
+ * filter functionality.
+ * @param {string} rallyId 
+ * @returns 
+ */
+export async function addSecondsPerKmColumn(rallyId) {
+  const totalKm = await fetchRallyTotalKm(rallyId);
   if (!totalKm || totalKm <= 0) return;
 
   const resultTables = document.querySelectorAll("table.rally_results");
@@ -51,7 +57,11 @@ export async function addRallyResultsDiff() {
 
     for (const row of rows) {
       if (row.classList.contains("fejlec2")) {
-        appendSecondsPerKmHeader(row, `Seconds per km (Total: ${totalKm} km)`);
+        const th = document.createElement('td');
+        th.className = 'rsf-plugin-header';
+        th.textContent = 's/km';
+        th.title = `Seconds per km (Total: ${totalKm} km)`;
+        row.appendChild(th);
         touched = true;
         continue;
       }
@@ -62,7 +72,9 @@ export async function addRallyResultsDiff() {
       const diffSec = parseDiffToSeconds(diffCell.textContent);
       const spkm = diffSec === null ? null : diffSec / totalKm;
 
-      appendSecondsPerKmDataCell(row, spkm, { zeroAsDash: true });
+      const td = document.createElement('td');
+      setSecondsPerKmCell(td, spkm, { zeroAsDash: true });
+      row.appendChild(td);
       touched = true;
     }
 
@@ -73,6 +85,17 @@ export async function addRallyResultsDiff() {
 
   mountRallySubclassFilter(totalKm);
   refreshRallyResultsSummary();
+}
+
+function renderCurrentUserResultsSection(row) {
+  return `
+    ${renderCurrentUserSection(row)}
+    ${renderSummaryMetric({
+      label: 'Finish Time',
+      value: row ? `${formatSeconds(row.rallyTimeSec)}` : '—',
+      tooltip: 'Your recorded stage time.'
+    })}
+  `;
 }
 
 function mountRallySubclassFilter(totalKm) {
@@ -145,12 +168,14 @@ function getRallyResultsRows() {
   for (const table of tables) {
     const rows = getDirectTableRows(table, { includeTfoot: false });
 
-    for (const row of rows) {
+    for (let i=0; i<rows.length; i++) {
+      const row = rows[i];
       const item = parseRallyResultsRow(row);
       if (!item) continue;
 
       item.originalOrder = items.length;
       item.visible = true;
+
       items.push(item);
     }
   }
@@ -305,7 +330,7 @@ function recalculateRallyResultsTable(items, selectedSubgroupId, totalKm) {
 }
 
 async function fetchRallyTotalKm(rallyId) {
-  const value = localStorage.getItem(`rallyDistance${rallyId}`);
+  const value = rsfCache.get(`rally:${rallyId}:distanceKm`);
   if (value !== null) return Number(value);
 
   const descParams = new URLSearchParams(window.location.search);
@@ -319,7 +344,7 @@ async function fetchRallyTotalKm(rallyId) {
 
     const html = await resp.text();
     const kms = extractTotalKmFromHtml(html);
-    localStorage.setItem(`rallyDistance${rallyId}`, String(kms));
+    rsfCache.set(`rally:${rallyId}:distanceKm`, String(kms));
     return kms;
   } catch (_) {
     return null;
@@ -391,7 +416,7 @@ function refreshRallyResultsSummary(items = null) {
   }
 
   const summary = summarizeRallyResults(resultsRows);
-  const currentUser = findCurrentUserResult(resultsRows);
+  const currentUser = resultsRows.find(row => row.isCurrentUser) || null;
 
-  updateResultsSummaryResultsPanel(resultsPanel, summary, currentUser);
+  updateResultsSummaryPanel(resultsPanel, summary, currentUser, renderCurrentUserResultsSection)
 }
