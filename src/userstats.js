@@ -1,19 +1,18 @@
-import { parseTimeToSeconds } from '../core/parse.js';
-import { internalClassNames } from '../core/html.js';
+import { parseTimeToSeconds } from './core/parse.js';
+import { internalClassNames } from './core/html.js';
 import {
   findFirstMatchingTable,
   findHeaderRow,
   findColumnIndexByHeaderText,
-} from '../core/tableDetection.js';
-import { calculateMedian } from '../core/stats.js';
-import { renderSummaryMetric } from '../core/summaryMetric.js';
+} from './core/tableDetection.js';
+import { calculateMedian } from './core/stats.js';
+import { renderSummaryMetric } from './core/summary.js';
 import {
-  formatSecondsPerKm,
-  formatConsistency,
+  formatSeconds,
   getSecondsPerKmClass,
   getConsistencyClass,
   setSecondsPerKmCell,
-} from '../core/format.js';
+} from './core/format.js';
 
 const SUMMARY_TOOLTIPS = {
   average: 'Average seconds per kilometer slower than the world record across visible driven stages.',
@@ -177,6 +176,23 @@ function detectColumns(headerRow, dataRows) {
 
   if (kmIdx === -1) return null;
   return { kmIdx, prIdx, wrIdx };
+}
+
+function formatConsistency(value) {
+  const secs = formatSeconds(value);
+  if (secs === '—') {
+    return '—';
+  }
+  return `${secs} s/km`;
+}
+
+
+function formatSecondsPerKm(spkm) {
+  const secs = formatSeconds(spkm);
+  if (secs === '—') {
+    return '—';
+  }
+  return `+${secs} s/km`;
 }
 
 /** 

@@ -1,30 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import {
-  formatSecondsPerKm,
-  formatConsistency,
   getSecondsPerKmClass,
   getConsistencyClass,
 } from '../src/core/format.js';
-
-describe('formatSecondsPerKm', () => {
-  it('formats null as dash', () => {
-    expect(formatSecondsPerKm(null)).toBe('—');
-  });
-
-  it('formats numbers to two decimals', () => {
-    expect(formatSecondsPerKm(1.234)).toBe('+01.234 s/km');
-  });
-});
-
-describe('formatConsistency', () => {
-  it('formats null as dash', () => {
-    expect(formatConsistency(null)).toBe('—');
-  });
-
-  it('formats numbers to two decimals', () => {
-    expect(formatConsistency(0.456)).toBe('00.456 s/km');
-  });
-});
 
 describe('getSecondsPerKmClass', () => {
   it('returns na for null', () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { renderSummaryMetric } from '../src/core/summaryMetric.js';
+import { renderSummaryMetric } from '../src/core/summary.js';
 
 describe('summaryMetric', () => {
   it('renders default classes and escaped content', () => {

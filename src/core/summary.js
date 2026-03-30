@@ -1,9 +1,5 @@
-import {
-  formatSeconds,
-  formatPercent,
-} from './format.js';
-import { renderSummaryMetric } from './summaryMetric.js';
-import { getGapBetweenPositions } from "./stats.js";
+import { formatSeconds } from './format.js';
+import { escapeHtml, escapeHtmlAttr } from './html.js';
 
 const RESULTS_TOOLTIPS = {
   positionSensitivity: 'Average gap between adjacent classified finishers. Lower means a tighter field.',
@@ -101,6 +97,29 @@ export function renderCurrentUserSection(row) {
     `;
 }
 
+export function renderSummaryMetric({
+    label,
+    value,
+    tooltip = '',
+    valueClass = '',
+    itemClass = 'rsf-plugin-summary-item',
+    labelClass = 'rsf-plugin-summary-label',
+    valueBaseClass = 'rsf-plugin-summary-value',
+}) {
+    const classes = [valueBaseClass, valueClass].filter(Boolean).join(' ');
+
+    return `
+      <div class="${itemClass}">
+        <span class="${labelClass}">
+          ${escapeHtml(label)}
+        </span>
+        <span class="${classes}" title="${escapeHtmlAttr(tooltip)}">
+          ${escapeHtml(value)}
+        </span>
+      </div>
+    `;
+}
+
 /**
  * if the stage results table is present, extracts the stage results data, 
  * computes summary statistics, and updates the summary panel.
@@ -140,7 +159,7 @@ export function updateResultsSummaryPanel(panel, summary, currentUser, renderUse
 /**
  * Binds the gap comparison controls within the summary panel.
  * @param {HTMLElement} panel 
- * @param {Array<{position: number|null}>} classifiedRows 
+ * @param {Array<{position: number|null, gapToLeaderSec: number}>} classifiedRows 
  * @returns {void}
  */
 function bindGapComparisonControls(panel, classifiedRows) {
@@ -175,8 +194,36 @@ function bindGapComparisonControls(panel, classifiedRows) {
 }
 
 /**
+ * format a decimal value as a percentage string, or return '—' if the value is 
+ * null or not finite.
+ * @param {number|null} value 
+ * @returns {string}
+ */
+function formatPercent(value) {
+  if (value === null || !Number.isFinite(value)) return '—';
+  return `${(value * 100).toFixed(1)}`;
+}
+
+/**
+ * get the gap in seconds between two positions in the classified results.
+ * @param {Array<{position: number|null, gapToLeaderSec: number}>} rows 
+ * @param {number} from 
+ * @param {number} to 
+ * @returns {number|null}
+ */
+function getGapBetweenPositions(rows, from, to) {
+  const fromRow = rows.find(row => row.position === from);
+  const toRow = rows.find(row => row.position === to);
+
+  if (!fromRow || !toRow) return null;
+  if (!Number.isFinite(fromRow.gapToLeaderSec) || !Number.isFinite(toRow.gapToLeaderSec)) return null;
+
+  return toRow.gapToLeaderSec - fromRow.gapToLeaderSec;
+}
+
+/**
  * Renders the gap comparison section of the summary panel, which allows users to select two positions and see the gap between them.
- * @param {Array<{position: number|null}>} classifiedRows 
+ * @param {Array<{position: number|null, gapToLeaderSec: number}>} classifiedRows 
  * @returns {string}
  */
 function renderGapComparisonSection(classifiedRows) {

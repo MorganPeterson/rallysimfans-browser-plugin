@@ -1,10 +1,10 @@
 import { urlStringValues } from './core/html.js';
-import { addSecondsPerKmColumn } from './rallyResults/rallyResults.js';
-import { addStageResultsSummary, mountSubclassFilter } from './rallyResultsStres/rallyStage.js';
-import { addLocalLegTimes } from './rallyListDetails/rallyDetails.js';
-import { addRallySearchFilter } from './rallyOnline/rallySearch.js';
-import { addDiffColumn } from './userstats/userstats.js';
-import { addStagesFilter } from './stages/stages.js';
+import { addSecondsPerKmColumn } from './rallyResults.js';
+import { addStageResultsSummary, mountSubclassFilter } from './rallyStage.js';
+import { addLocalLegTimes } from './rallyDetails.js';
+import { addRallySearchFilter } from './rallySearch.js';
+import { addDiffColumn } from './userstats.js';
+import { addStagesFilter } from './stages.js';
 
 function init() {
   const page = window.location.pathname.split("/").pop();

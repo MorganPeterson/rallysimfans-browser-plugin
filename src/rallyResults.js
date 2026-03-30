@@ -1,30 +1,31 @@
-import { applyZebraStriping, getDirectTableRows } from "../core/domTable.js";
+import { applyZebraStriping, getDirectTableRows } from "./core/domTable.js";
 import {
   parseDiffToSeconds,
   normalizeText,
   parseRallyResultsRow,
   parseRallyResultsTable,
-} from "../core/parse.js";
+} from "./core/parse.js";
 import {
   formatTime,
   formatSeconds,
   setSecondsPerKmCell,
-} from "../core/format.js";
+} from "./core/format.js";
 import {
     collectAvailableSubclasses,
     getAbsoluteValue,
     createSubclassFilterBar,
-} from "../core/subclassFilterShared.js";
-import { insertResultsSummaryPanel, updateResultsSummaryPanel, renderCurrentUserSection } from "../core/summary.js";
-import { findCurrentUserResult, getVisibleParsedRowsFromItems } from "../core/results.js";
-import { findFirstMatchingTable, tableHasMatchingRow } from "../core/tableDetection.js";
-import { summarizeRallyResults } from "../core/stats.js";
-import { BASE_GROUP_ID_TO_CLASS_NAME } from "../core/cars.js";
-import { renderSummaryMetric } from "../core/summaryMetric.js";
+} from "./core/subclassFilterShared.js";
+import { insertResultsSummaryPanel, updateResultsSummaryPanel, renderCurrentUserSection } from "./core/summary.js";
+import { findFirstMatchingTable, tableHasMatchingRow } from "./core/tableDetection.js";
+import { summarizeRallyResults } from "./core/stats.js";
+import { BASE_GROUP_ID_TO_CLASS_NAME } from "./core/cars.js";
+import { renderSummaryMetric } from "./core/summary.js";
 
 function getVisibleParsedRallyRows(items = null) {
   if (Array.isArray(items) && items.length) {
-    return getVisibleParsedRowsFromItems(items, parseRallyResultsRow);
+    return items.filter(item => item.visible)
+      .map(item => parseRallyResultsRow(item.row))
+      .filter(Boolean);
   }
 
   return getRallyResultsRows()
@@ -406,7 +407,7 @@ function refreshRallyResultsSummary(items = null) {
   }
 
   const summary = summarizeRallyResults(resultsRows);
-  const currentUser = findCurrentUserResult(resultsRows);
+  const currentUser = resultsRows.find(row => row.isCurrentUser) || null;
 
   updateResultsSummaryPanel(resultsPanel, summary, currentUser, renderCurrentUserResultsSection)
 }

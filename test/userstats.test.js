@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseKm, summarizeStageStats } from '../src/userstats/userstats.js';
+import { parseKm, summarizeStageStats } from '../src/userstats.js';
 
 describe('summarizeStageStats', () => {
   it('summarizes a single driven stage', () => {

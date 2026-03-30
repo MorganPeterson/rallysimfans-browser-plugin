@@ -3,7 +3,7 @@ import {
   parseBudapestDateTime,
   parseLegRange,
   formatLocalDateTimeRange,
-} from '../src/rallyListDetails/rallyDetails.js';
+} from '../src/rallyDetails.js';
 
 describe('parseBudapestDateTime', () => {
   it('parses a valid Budapest datetime', () => {

@@ -2,24 +2,23 @@ import {
     parseStageResultsTable,
     parseStageResultsRow,
     normalizeText,
-} from "../core/parse.js";
-import { summarizeStageResults } from "../core/stats.js";
-import { formatTime, formatSeconds } from "../core/format.js";
+} from "./core/parse.js";
+import { summarizeStageResults } from "./core/stats.js";
+import { formatTime, formatSeconds } from "./core/format.js";
 import {
   insertResultsSummaryPanel,
   renderCurrentUserSection,
   updateResultsSummaryPanel,
-} from "../core/summary.js";
-import { findFirstMatchingTable, tableHasMatchingRow } from "../core/tableDetection.js";
-import { applyZebraStriping } from "../core/domTable.js";
+} from "./core/summary.js";
+import { findFirstMatchingTable, tableHasMatchingRow } from "./core/tableDetection.js";
+import { applyZebraStriping } from "./core/domTable.js";
 import {
   collectAvailableSubclasses,
   createSubclassFilterBar,
   getAbsoluteValue,
-} from "../core/subclassFilterShared.js";
-import { findCurrentUserResult, getVisibleParsedRowsFromItems } from "../core/results.js";
-import { BASE_GROUP_ID_TO_CLASS_NAME } from "../core/cars.js";
-import { renderSummaryMetric } from "../core/summaryMetric.js";
+} from "./core/subclassFilterShared.js";
+import { BASE_GROUP_ID_TO_CLASS_NAME } from "./core/cars.js";
+import { renderSummaryMetric } from "./core/summary.js";
 
 function refreshStageResultsSummary(leftItems = null) {
   const stageTable = findStageResultsDataTable();
@@ -34,7 +33,7 @@ function refreshStageResultsSummary(leftItems = null) {
   if (!stagePanel) return;
 
   const stageRows = Array.isArray(leftItems) && leftItems.length
-    ? getVisibleParsedRowsFromItems(leftItems, parseStageResultsRow)
+    ? leftItems.filter(item => item.visible).map(item => parseStageResultsRow(item.row)).filter(Boolean)
     : parseStageResultsTable(stageTable);
 
   if (!stageRows.length) {
@@ -55,7 +54,7 @@ function refreshStageResultsSummary(leftItems = null) {
   }
 
   const stageSummary = summarizeStageResults(stageRows);
-  const currentUser = findCurrentUserResult(stageRows);
+  const currentUser = stageRows.find(row => row.isCurrentUser) || null;
 
   updateResultsSummaryPanel(stagePanel, stageSummary, currentUser, renderCurrentUserStageSection);
 }
