@@ -1,13 +1,15 @@
 import { DateTime } from 'luxon';
 import { findFirstMatchingTable, tableHasMatchingRow } from './core/tableDetection.js';
+import { rsfCache } from './core/cache.js';
 
 const BUDAPEST_TZ = 'Europe/Budapest';
 
 /**
  * Adds local time display for leg ranges in rally details. 
+ * @param {string} rallyId
  * @returns null
  */
-export function addLocalLegTimes() {
+export function addLocalLegTimes(rallyId) {
   const table = findRallyInfoTable();
   if (!table || table.dataset.rsfLocalTimesDone === '1') return;
 
@@ -24,7 +26,7 @@ export function addLocalLegTimes() {
     if (row.querySelector('.rsf-plugin-local-time')) continue;
     if (valueCell.querySelector('.rsf-plugin-local-time')) continue;
 
-    const range = parseLegRange(valueCell.textContent);
+    const range = parseLegRange(rallyId, valueCell.textContent);
     if (!range) continue;
 
     const localSpan = document.createElement('span');
@@ -59,7 +61,15 @@ export function formatLocalDateTimeRange(
   return `${localStart.toFormat('yyyy-MM-dd HH:mm')} - ${localEnd.toFormat('yyyy-MM-dd HH:mm')}`;
 }
 
-export function parseLegRange(text) {
+export function parseLegRange(rallyId, text) {
+  const cached = rsfCache.get(`rally:${rallyId}:localTimes`);
+  if (cached && cached.start && cached.end) {
+    return {
+      start: DateTime.fromISO(cached.start),
+      end: DateTime.fromISO(cached.end),
+    };
+  }
+
   const match = text.match(
     /^\s*(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})\s*-\s*(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})\s*$/
   );
@@ -70,6 +80,8 @@ export function parseLegRange(text) {
   const end = parseBudapestDateTime(match[2]);
 
   if (!start || !end) return null;
+
+  rsfCache.set(`rally:${rallyId}:localTimes`, { start: start.toISO(), end: end.toISO() });
 
   return { start, end };
 }

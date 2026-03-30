@@ -20,6 +20,7 @@ import { findFirstMatchingTable, tableHasMatchingRow } from "./core/tableDetecti
 import { summarizeRallyResults } from "./core/stats.js";
 import { BASE_GROUP_ID_TO_CLASS_NAME } from "./core/cars.js";
 import { renderSummaryMetric } from "./core/summary.js";
+import { rsfCache } from "./core/cache.js";
 
 function getVisibleParsedRallyRows(items = null) {
   if (Array.isArray(items) && items.length) {
@@ -34,8 +35,14 @@ function getVisibleParsedRallyRows(items = null) {
     .filter(Boolean);
 }
 
-export async function addSecondsPerKmColumn() {
-  const totalKm = await fetchRallyTotalKm();
+/**
+ * Adds the s/km column to the rally results table, summary panel, and subclass
+ * filter functionality.
+ * @param {string} rallyId 
+ * @returns 
+ */
+export async function addSecondsPerKmColumn(rallyId) {
+  const totalKm = await fetchRallyTotalKm(rallyId);
   if (!totalKm || totalKm <= 0) return;
 
   const resultTables = document.querySelectorAll("table.rally_results");
@@ -161,12 +168,14 @@ function getRallyResultsRows() {
   for (const table of tables) {
     const rows = getDirectTableRows(table, { includeTfoot: false });
 
-    for (const row of rows) {
+    for (let i=0; i<rows.length; i++) {
+      const row = rows[i];
       const item = parseRallyResultsRow(row);
       if (!item) continue;
 
       item.originalOrder = items.length;
       item.visible = true;
+
       items.push(item);
     }
   }
@@ -321,7 +330,7 @@ function recalculateRallyResultsTable(items, selectedSubgroupId, totalKm) {
 }
 
 async function fetchRallyTotalKm(rallyId) {
-  const value = localStorage.getItem(`rallyDistance${rallyId}`);
+  const value = rsfCache.get(`rally:${rallyId}:distanceKm`);
   if (value !== null) return Number(value);
 
   const descParams = new URLSearchParams(window.location.search);
@@ -335,7 +344,7 @@ async function fetchRallyTotalKm(rallyId) {
 
     const html = await resp.text();
     const kms = extractTotalKmFromHtml(html);
-    localStorage.setItem(`rallyDistance${rallyId}`, String(kms));
+    rsfCache.set(`rally:${rallyId}:distanceKm`, String(kms));
     return kms;
   } catch (_) {
     return null;

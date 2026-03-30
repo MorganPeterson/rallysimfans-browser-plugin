@@ -81,8 +81,12 @@ function parseResultsTable(table, rowParser) {
   const rows = Array.from(table.querySelectorAll(':scope > tbody > tr, :scope > tr'));
   const results = [];
 
-  for (const row of rows) {
+  for (let i=0; i<rows.length; i++) {
+    const row = rows[i];
     const parsed = rowParser(row);
+    if (!Number.isFinite(parsed?.position)) {
+      parsed.position = i + 1;
+    }
     if (parsed) {
       results.push(parsed);
     }
@@ -192,7 +196,7 @@ export function parseRallyResultsRow(row) {
   }
 
 
-  const position = parseIntegerStrict(normalizeText(posCell.textContent));
+  const position = parseIntegerStrict(posCell.textContent);
   const isSR = parseIntegerStrict(numSRs.textContent) != null;
 
   const carName = normalizeText(carCell.textContent);

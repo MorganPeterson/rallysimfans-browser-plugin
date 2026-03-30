@@ -15,12 +15,12 @@ function init() {
   switch (page) {
     case urlStringValues.paths.rallyOnline:
       if (centerbox === urlStringValues.values.rallyResults && rallyId) {
-        addSecondsPerKmColumn();
+        addSecondsPerKmColumn(rallyId);
       } else if (centerbox === urlStringValues.values.rallyResultsStres) {
         addStageResultsSummary();
         mountSubclassFilter();
       } else if (centerbox === urlStringValues.values.rallyListDetails) {
-        addLocalLegTimes();
+        addLocalLegTimes(rallyId);
       } else if (!centerbox) {
         addRallySearchFilter();
       }
