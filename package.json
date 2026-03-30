@@ -1,6 +1,6 @@
 {
   "name": "rallysimfans-browser-plugin",
-  "version": "1.5.2",
+  "version": "1.5.3",
   "private": true,
   "type": "module",
   "description": "Enhances RallySimFans website with more information",

@@ -1,3 +1,9 @@
+### V1.5.3
+- A restructuring of code and tests
+- added cache for certain re-used values
+- updated dependencies
+- all features appear to be stable for the first time
+
 ### V1.5.1
 - fixed bug where stage results SR was not being calculated
 
