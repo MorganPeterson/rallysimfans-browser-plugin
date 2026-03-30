@@ -1,3 +1,22 @@
+/**
+ * A car object
+ * @typedef {Object} Car
+ * @property {number} id - The unique identifier for the car.
+ * @property {number} carmodel_id - The identifier for the car model.
+ * @property {string} car_name - The name of the car.
+ * @property {number|null} base_class_id - The identifier for the base class.
+ * @property {string|null} base_class_name - The name of the base class.
+ * @property {number|null} sub_class_id - The identifier for the subclass.
+ * @property {string|null} sub_class_name - The name of the subclass.
+ */
+
+
+/**
+ * Provides functions to retrieve car information based on car name and to map 
+ * base group and subgroup IDs to their respective class names. 
+ * @param {string} carName 
+ * @returns {Car}
+ */
 export function getCarByName(carName) {
   if (!CAR_LIST.has(carName)) {
     return {

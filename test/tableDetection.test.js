@@ -5,7 +5,7 @@ import {
   findHeaderRow,
   tableHasMatchingRow,
   findColumnIndexByHeaderText,
-} from '../src/tableDetection.js';
+} from '../src/core/tableDetection.js';
 
 describe('tableDetection', () => {
   beforeEach(() => {

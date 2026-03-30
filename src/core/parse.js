@@ -1,6 +1,10 @@
 import { getCarByName } from "./cars.js"
 
-// Convert "MM:SS.mmm" or "H:MM:SS.mmm" to total seconds. Returns null on failure.
+/** 
+ * Convert "MM:SS.mmm" or "H:MM:SS.mmm" to total seconds. Returns null on failure.
+ * @param {string} timeStr - The time string to parse.
+ * @returns {number|null} The total time in seconds, or null if parsing fails.
+ */
 export function parseTimeToSeconds(timeStr) {
     if (typeof timeStr !== 'string') return null;
 
@@ -71,28 +75,18 @@ export function parseDiffToSeconds(str) {
   return parseTimeToSeconds(normalized);
 }
 
-// Extract km from "13.4 km", "9,7 km", etc.
-export function parseKm(lenStr) {
-    if (typeof lenStr !== 'string') return null;
-
-    const s = lenStr.trim();
-    if (!s) return null;
-
-    const match = s.match(/^(\d+(?:[.,]\d+)?)\s*km$/i);
-    if (!match) return null;
-
-    const km = Number(match[1].replace(',', '.'));
-    return Number.isFinite(km) ? km : null;
-}
-
 function parseResultsTable(table, rowParser) {
   if (!table) return [];
 
   const rows = Array.from(table.querySelectorAll(':scope > tbody > tr, :scope > tr'));
   const results = [];
 
-  for (const row of rows) {
+  for (let i=0; i<rows.length; i++) {
+    const row = rows[i];
     const parsed = rowParser(row);
+    if (!Number.isFinite(parsed?.position)) {
+      parsed.position = i + 1;
+    }
     if (parsed) {
       results.push(parsed);
     }
@@ -202,7 +196,7 @@ export function parseRallyResultsRow(row) {
   }
 
 
-  const position = parseIntegerStrict(normalizeText(posCell.textContent));
+  const position = parseIntegerStrict(posCell.textContent);
   const isSR = parseIntegerStrict(numSRs.textContent) != null;
 
   const carName = normalizeText(carCell.textContent);
