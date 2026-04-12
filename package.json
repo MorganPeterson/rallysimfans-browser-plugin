@@ -18,7 +18,7 @@
   "devDependencies": {
     "esbuild": "^0.27.4",
     "jsdom": "^29.0.1",
-    "vitest": "^4.1.2"
+    "vitest": "^4.1.4"
   },
   "keywords": [],
   "author": "",
