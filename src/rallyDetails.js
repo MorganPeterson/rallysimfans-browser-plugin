@@ -6,10 +6,9 @@ const BUDAPEST_TZ = 'Europe/Budapest';
 
 /**
  * Adds local time display for leg ranges in rally details. 
- * @param {string} rallyId
  * @returns null
  */
-export function addLocalLegTimes(rallyId) {
+export function addLocalLegTimes() {
   const table = findRallyInfoTable();
   if (!table || table.dataset.rsfLocalTimesDone === '1') return;
 
@@ -20,18 +19,23 @@ export function addLocalLegTimes(rallyId) {
     if (cells.length < 2) continue;
 
     const label = cells[0].textContent.trim();
+    if (!/^Leg\s+\d+:$/i.test(label)) continue;
+
     const valueCell = cells[1];
 
-    if (!/^Leg\s+\d+:$/i.test(label)) continue;
     if (row.querySelector('.rsf-plugin-local-time')) continue;
     if (valueCell.querySelector('.rsf-plugin-local-time')) continue;
 
-    const range = parseLegRange(rallyId, valueCell.textContent);
+    const rawText = valueCell.textContent.trim();
+    const range = parseLegRange(rawText);
+
     if (!range) continue;
 
     const localSpan = document.createElement('span');
     localSpan.className = 'rsf-plugin-local-time';
-    localSpan.textContent = ` | (Local: ${formatLocalDateTimeRange(range.start, range.end)})`;
+    localSpan.textContent =
+      ` | (Local: ${formatLocalDateTimeRange(range.start, range.end)})`;
+
     localSpan.title =
       `Converted from Hungary time (${BUDAPEST_TZ}) to your local time ` +
       `(${Intl.DateTimeFormat().resolvedOptions().timeZone})`;
@@ -63,19 +67,10 @@ export function formatLocalDateTimeRange(
 
 /**
  * Parses the leg range from the given text, using cache if available.
- * @param {string} rallyId
  * @param {string} text
  * @returns {{start: DateTime, end: DateTime}|null}
  */
-export function parseLegRange(rallyId, text) {
-  const cached = rsfCache.get(`rally:${rallyId}:localTimes`);
-  if (cached && cached.start && cached.end) {
-    return {
-      start: DateTime.fromISO(cached.start),
-      end: DateTime.fromISO(cached.end),
-    };
-  }
-
+export function parseLegRange(text) {
   const match = text.match(
     /^\s*(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})\s*-\s*(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})\s*$/
   );
@@ -86,8 +81,6 @@ export function parseLegRange(rallyId, text) {
   const end = parseBudapestDateTime(match[2]);
 
   if (!start || !end) return null;
-
-  rsfCache.set(`rally:${rallyId}:localTimes`, { start: start.toISO(), end: end.toISO() });
 
   return { start, end };
 }
