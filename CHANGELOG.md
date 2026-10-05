@@ -1,3 +1,7 @@
+### V1.5.4
+- Bug fix to local date a times not showing correct times if legs had different
+  start and end values.
+
 ### V1.5.3
 - A restructuring of code and tests
 - added cache for certain re-used values

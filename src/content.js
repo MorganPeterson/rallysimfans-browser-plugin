@@ -20,7 +20,7 @@ function init() {
         addStageResultsSummary();
         mountSubclassFilter();
       } else if (centerbox === urlStringValues.values.rallyListDetails) {
-        addLocalLegTimes(rallyId);
+        addLocalLegTimes();
       } else if (!centerbox) {
         addRallySearchFilter();
       }
